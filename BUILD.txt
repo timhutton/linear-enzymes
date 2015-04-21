@@ -1,0 +1,118 @@
+Dependencies: 
+0) CMake: www.cmake.org
+1) wxWidgets (latest): www.wxwidgets.org
+
+We use CMake for pre-build setup. You might need to read some CMake
+documentation first to get the hang of it.
+
+=============== Windows, using the Visual Studio IDE =================
+
+A) Build wxWidgets:
+ - From the Start menu, open a Visual Studio command prompt.
+ - cd c:\wxWidgets\build\msw (or equivalent for your installation)
+ - Build both the release and debug versions:
+   For 32-bit:
+    nmake -f makefile.vc BUILD=release RUNTIME_LIBS=static UNICODE=1 DEBUG_INFO=0 DEBUG_FLAG=0
+    nmake -f makefile.vc BUILD=debug RUNTIME_LIBS=static UNICODE=1 DEBUG_INFO=1 DEBUG_FLAG=1
+   For 64-bit:
+    nmake -f makefile.vc BUILD=release RUNTIME_LIBS=static UNICODE=1 DEBUG_INFO=0 DEBUG_FLAG=0 TARGET_CPU=AMD64
+    nmake -f makefile.vc BUILD=debug RUNTIME_LIBS=static UNICODE=1 DEBUG_INFO=1 DEBUG_FLAG=1 TARGET_CPU=AMD64
+ 
+B) Build grid-physics:
+ - Run CMake and make a separate build folder.
+ - Set wxWidgets_ROOT_DIR to your wxWidgets installation folder, if 
+   CMake didn't find the right version automatically.
+ - Set wxWidgets_LIB_DIR to e.g. c:\wxWidgets\lib\vc_lib, if CMake 
+   didn't find the right version automatically.
+ - wxWidgets_USE_REL_AND_DBG should be checked.
+ - Generate, then open the resulting solution file and build the Debug and
+   Release targets. Set grid-physics as the "StartUp Project" to have it run
+   by default.
+   
+For 64-bit builds:
+- select the 64-bit generators in CMake
+- use a 64-bit Visual Studio command prompt for building wxWidgets
+
+================ Windows, using the command-line =====================
+
+A) Build wxWidgets:
+ - From the Start menu, open a Visual Studio command prompt.
+ - cd c:\wxWidgets\build\msw (or equivalent for your installation)
+ - Build the release version:   
+   For 32-bit:
+    nmake -f makefile.vc BUILD=release RUNTIME_LIBS=static UNICODE=1 DEBUG_INFO=0 DEBUG_FLAG=0
+   For 64-bit:
+    nmake -f makefile.vc BUILD=release RUNTIME_LIBS=static UNICODE=1 DEBUG_INFO=0 DEBUG_FLAG=0 TARGET_CPU=AMD64
+    
+B) Build grid-physics:
+ - From the Start menu, open a Visual Studio command prompt and type:
+    cmake-gui
+ - Create a target build folder, and select NMake Makefiles as the 
+   generator.
+ - Set CMAKE_BUILD_TYPE to Release
+ - Set wxWidgets_ROOT_DIR to your wxWidgets installation folder, if 
+   CMake didn't find the right version automatically.
+ - Set wxWidgets_LIB_DIR to e.g. c:\wxWidgets\lib\vc_lib, if CMake 
+   didn't find the right version automatically.
+ - Configure, generate, quit.
+ - Build grid-physics:
+    nmake
+
+For 64-bit builds:
+- use the 64-bit Visual Studio command prompt
+- c:\wxWidgets\lib\vc_lib is now c:\wxWidgets\lib\vc_amd64_lib
+  (vc_x64_lib with wxWidgets 2.9.4 or later)
+
+=========================== Linux =================================
+
+(should work, not tested)
+
+Install: libgtk2.0-dev, libwxgtk (if your repository provides a recent
+enough version), ccmake (cmake-curses-gui).
+
+A) Build wxWidgets (if your repository doesn't provide a recent enough 
+   version):
+
+cd wxWidgets
+mkdir build-gtk
+cd build-gtk
+../configure --with-gtk --disable-shared --enable-unicode --with-opengl --with-zlib=builtin --with-libpng=builtin --with-libjpeg=builtin --with-libtiff=builtin
+make
+sudo make install
+
+B) Build grid-physics:
+
+mkdir build
+cd build
+ccmake ../source_folder
+(configure, generate)
+make
+
+make package
+make package_source
+
+=========================== MacOS =================================
+
+(should work, not tested)
+
+1. To avoid the error "-- Could NOT find wxWidgets (missing:  wxWidgets_FOUND)", 
+   manually build and install wxWidgets 2.9 even if you already have an 
+   wxWidgets that works for other projects:
+
+ cd
+ svn checkout http://svn.wxwidgets.org/svn/wx/wxWidgets/trunk wx-trunk
+ cd wx-trunk
+ mkdir build-osx
+ cd build-osx
+ ../configure --enable-unicode --disable-shared --with-osx_cocoa
+ make    # Take a nap, it'll be a while
+ sudo make install
+
+2. Then do this to get, configure and build grid-physics:
+
+ cd
+ mkdir gui_build
+ cd gui_build
+ cmake ../source_folder
+ make
+ open grid-physics.app
