@@ -30,36 +30,18 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
 
     // draw the atoms
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    for(int pass = 0; pass < 2; pass++) // we want unbonded atoms to appear faint and behind (as if 2.5D)
+    for(const Atom& atom : atoms)
     {
-        for(const Atom& atom : atoms)
-        {
-            // draw the cell
-            SDL_Color color = GetColor("abcdef"[atom.state%6]);
-            int alpha = 0;
-            if(atom.state==0)
-            {
-                // background atom
-                // skip these in the second pass
-                if(pass==1) continue;
-                // make mostly transparent
-                alpha = 10;
-            }
-            else
-            {
-                // foreground atom
-                if(pass==0) continue;
-                // make slightly transparent
-                alpha = 200;
-            }
-            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
-            SDL_Rect r;
-            r.x = atom.x*scale + OFFSET;
-            r.y = atom.y*scale + OFFSET;
-            r.w = scale;
-            r.h = scale;
-            SDL_RenderFillRect(renderer, &r);
-        }
+        // draw the cell
+        SDL_Color color = GetColor("abcdef"[atom.state%6]);
+        const int alpha = (atom.state == 4) ? 10 : 255;
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
+        SDL_Rect r;
+        r.x = atom.x*scale + OFFSET;
+        r.y = atom.y*scale + OFFSET;
+        r.w = scale;
+        r.h = scale;
+        SDL_RenderFillRect(renderer, &r);
     }
 
     // draw the bonds
