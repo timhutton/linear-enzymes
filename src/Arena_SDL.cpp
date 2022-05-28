@@ -22,22 +22,22 @@ SDL_Color GetColor(char type)
 
 void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
 {
+    static const int OFFSET = 20;
+
     // clear the background
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    /* TODO
     // draw the atoms
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    for(int pass=0;pass<2;pass++) // we want unbonded atoms to appear faint and behind (as if 2.5D)
+    for(int pass = 0; pass < 2; pass++) // we want unbonded atoms to appear faint and behind (as if 2.5D)
     {
-        for(vector<SquirmCell*>::const_iterator it = this->cell_list.begin();it!=this->cell_list.end();it++)
+        for(const Atom& atom : atoms)
         {
-            SquirmCell *cell = *it;
             // draw the cell
-            SDL_Color color = GetColor(cell->GetType());
+            SDL_Color color = GetColor("abcdef"[atom.state%6]);
             int alpha = 0;
-            if(cell->GetState()==0)
+            if(atom.state==0)
             {
                 // background atom
                 // skip these in the second pass
@@ -53,35 +53,31 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
                 alpha = 200;
             }
             SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
-            float s = scale*RADIUS*0.8;
             SDL_Rect r;
-            r.x = cell->location.x*scale-s+OFFSET;
-            r.y = cell->location.y*scale-s+OFFSET;
-            r.w = s*2;
-            r.h = s*2;
+            r.x = atom.x*scale + OFFSET;
+            r.y = atom.y*scale + OFFSET;
+            r.w = scale;
+            r.h = scale;
             SDL_RenderFillRect(renderer, &r);
         }
     }
 
     // draw the bonds
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 50);
-    for(vector<SquirmCell*>::const_iterator it = this->cell_list.begin();it!=this->cell_list.end();it++)
+    for(int iAtom = 0; iAtom < atoms.size(); iAtom++)
     {
-        SquirmCell *cell = *it;
-        // draw the cell's bonds as lines
-        for(vector<SquirmCell*>::const_iterator it2=cell->GetBondedCells().begin();it2!=cell->GetBondedCells().end();it2++)
+        // draw the atoms's bonds as lines
+        for(const Bond& bond : atoms[iAtom].bonds)
         {
-            SquirmCell *other = *it2;
-            if(other<cell) continue; // (avoid drawing the same line more than once)
+            if(bond.iAtom < iAtom) continue; // (avoid drawing the same line more than once)
 
             SDL_RenderDrawLine(renderer,
-                int(cell->location.x*scale)+OFFSET,
-                int(cell->location.y*scale)+OFFSET,
-                int(other->location.x*scale)+OFFSET,
-                int(other->location.y*scale)+OFFSET);
+                int(atoms[iAtom].x*scale)+OFFSET,
+                int(atoms[iAtom].y*scale)+OFFSET,
+                int(atoms[bond.iAtom].x*scale)+OFFSET,
+                int(atoms[bond.iAtom].y*scale)+OFFSET);
         }
     }
-    */
 
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 }

@@ -30,7 +30,7 @@ class Arena {
         Atom getAtom( size_t i ) const { return this->atoms[i]; }
         size_t getNumberOfGroups() const { return this->groups.size(); }
 
-    private:
+    protected:
 
         // typedefs
         struct Group { std::vector<size_t> atoms; };
