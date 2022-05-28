@@ -1,6 +1,6 @@
 #ifndef NEIGHBORHOOD_HPP
 #define NEIGHBORHOOD_HPP
-									  // as squared Euclidean distance r2:
+                                      // as squared Euclidean distance r2:
 enum Neighborhood { vonNeumann        // r2 <= 1
                     , Moore           // r2 <= 2
                     , vonNeumann2     // r2 <= 4

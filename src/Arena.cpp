@@ -14,14 +14,14 @@ using namespace std;
 
 Arena::Arena(int x, int y)
     : X( x )
-	, Y( y )
+    , Y( y )
     , movement_method( MovementMethod::JustAtoms )
     , movement_neighborhood( Neighborhood::vonNeumann ) // currently only vonNeumann supported
     , chemical_neighborhood( Neighborhood::vonNeumann )
     , proximity( Proximity::SingleOccupancy )
     //, proximity( Proximity::PassThrough )
 {
-	this->grid = vector<vector<Slot>>( X, vector<Slot>( Y ) );
+    this->grid = vector<vector<Slot>>( X, vector<Slot>( Y ) );
 }
 
 //----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ bool Arena::isOffGrid( int x, int y ) const {
 
 bool Arena::hasAtom( int x, int y ) const {
     if( isOffGrid(x,y ) )
-		throw out_of_range("Atom not on grid");
+        throw out_of_range("Atom not on grid");
 
     return !this->grid[x][y].isEmpty();
 }
@@ -50,41 +50,41 @@ bool Arena::canPlaceAtom( int x, int y ) const {
             return this->grid[ x ][ y ].isEmpty();
     }
 }
-    
+
 //----------------------------------------------------------------------------
 
 size_t Arena::addAtom( int x, int y, int state ) {
 
     if( isOffGrid(x,y ) )
-		throw out_of_range("Atom not on grid");
+        throw out_of_range("Atom not on grid");
 
-	Slot& slot = this->grid[x][y];
-	if( !slot.isEmpty() )
-		throw exception("Grid already contains an atom at that position");
+    Slot& slot = this->grid[x][y];
+    if( !slot.isEmpty() )
+        throw runtime_error("Grid already contains an atom at that position");
 
-	Atom a;
-	a.x = x;
-	a.y = y;
+    Atom a;
+    a.x = x;
+    a.y = y;
     a.state = state;
-	this->atoms.push_back( a );
-	size_t iAtom = this->atoms.size()-1;
+    this->atoms.push_back( a );
+    size_t iAtom = this->atoms.size()-1;
 
     slot.addAtom( iAtom );
 
-	Group group;
-	group.atoms.push_back( iAtom );
-	this->groups.push_back( group );
+    Group group;
+    group.atoms.push_back( iAtom );
+    this->groups.push_back( group );
 
-	return iAtom;
+    return iAtom;
 }
 
 //----------------------------------------------------------------------------
 
 void Arena::makeBond( size_t a, size_t b, Neighborhood range ) {
-	if( a < 0 || a >= atoms.size() || b < 0 || b >= atoms.size() )
-		throw out_of_range("Invalid atom index");
-	if( a == b )
-		throw invalid_argument("Cannot bond atom to itself");
+    if( a < 0 || a >= atoms.size() || b < 0 || b >= atoms.size() )
+        throw out_of_range("Invalid atom index");
+    if( a == b )
+        throw invalid_argument("Cannot bond atom to itself");
     if( !isWithinNeighborhood( range, this->atoms[a].x, this->atoms[a].y, this->atoms[b].x, this->atoms[b].y ) )
         throw invalid_argument("Atoms are too far apart to be bonded");
     if( hasBond( a, b ) )
@@ -104,15 +104,15 @@ void Arena::makeBond( size_t a, size_t b, Neighborhood range ) {
             break;
         case AllGroups:
             //  we need to find all the subgraphs created by this new bond
-	        addAllGroupsForNewBond( a, b );
+            addAllGroupsForNewBond( a, b );
             // if a and b are rigidly bonded then we don't need to check their groups separately
             if( range == Neighborhood::vonNeumann )
                 removeGroupsWithOneButNotTheOther( a, b );
             break;
-        case MPEGSpace: 
+        case MPEGSpace:
             // we don't use groups for this method
             break;
-        case MPEGMolecules: 
+        case MPEGMolecules:
             // here each molecule is a single group
             combineGroupsInvolvingTheseIntoOne( a, b );
             break;
@@ -122,23 +122,23 @@ void Arena::makeBond( size_t a, size_t b, Neighborhood range ) {
 //----------------------------------------------------------------------------
 
 void Arena::addAllGroupsForNewBond( size_t a, size_t b ) {
-	// add new groups obtained by combining pairwise every group that includes a but not b 
+    // add new groups obtained by combining pairwise every group that includes a but not b
     // with every group that includes b but not a
-	vector<Group> new_groups;
-	for( const auto& ga : this->groups ) {
-		if( find( begin( ga.atoms ), end( ga.atoms ), a ) == end( ga.atoms ) )
-			continue;
-		if( find( begin( ga.atoms ), end( ga.atoms ), b ) != end( ga.atoms ) )
-			continue;
+    vector<Group> new_groups;
+    for( const auto& ga : this->groups ) {
+        if( find( begin( ga.atoms ), end( ga.atoms ), a ) == end( ga.atoms ) )
+            continue;
+        if( find( begin( ga.atoms ), end( ga.atoms ), b ) != end( ga.atoms ) )
+            continue;
         // (ga contains a but not b)
-		for( const auto& gb : this->groups ) {
-			if( find( begin( gb.atoms ), end( gb.atoms ), b ) == end( gb.atoms ) )
-				continue;
-			if( find( begin( gb.atoms ), end( gb.atoms ), a ) != end( gb.atoms ) )
-				continue;
+        for( const auto& gb : this->groups ) {
+            if( find( begin( gb.atoms ), end( gb.atoms ), b ) == end( gb.atoms ) )
+                continue;
+            if( find( begin( gb.atoms ), end( gb.atoms ), a ) != end( gb.atoms ) )
+                continue;
             // (gb contains b but not a)
             // merge the two groups
-			Group new_group;
+            Group new_group;
             new_group.atoms.resize( ga.atoms.size() + gb.atoms.size() );
             const auto& end = set_union( ga.atoms.begin(), ga.atoms.end(), gb.atoms.begin(), gb.atoms.end(), new_group.atoms.begin() );
             new_group.atoms.resize( end - new_group.atoms.begin() );
@@ -150,11 +150,11 @@ void Arena::addAllGroupsForNewBond( size_t a, size_t b ) {
                     break;
                 }
             }
-			if( is_unique )
+            if( is_unique )
                 new_groups.push_back( new_group );
         }
     }
-	this->groups.insert( this->groups.end(), new_groups.begin(), new_groups.end() );
+    this->groups.insert( this->groups.end(), new_groups.begin(), new_groups.end() );
 }
 
 //----------------------------------------------------------------------------
@@ -165,7 +165,7 @@ void Arena::removeGroupsWithOneButNotTheOther( size_t a, size_t b ) {
         public:
             GroupHasOneButNotTheOther( size_t a, size_t b ) : a(a), b(b) {}
             bool operator() (const Group& g) const
-            { 
+            {
                 int n = 0;
                 if( find( begin(g.atoms), end(g.atoms), a) != end(g.atoms) ) n++;
                 if( find( begin(g.atoms), end(g.atoms), b) != end(g.atoms) ) n++;
@@ -175,7 +175,7 @@ void Arena::removeGroupsWithOneButNotTheOther( size_t a, size_t b ) {
             size_t a,b;
     };
 
-    this->groups.erase( remove_if( begin( this->groups ), end( this->groups ), 
+    this->groups.erase( remove_if( begin( this->groups ), end( this->groups ),
         GroupHasOneButNotTheOther( a, b ) ), end( this->groups ) );
 }
 
@@ -289,7 +289,7 @@ bool Arena::moveGroupIfPossible( const Group& group, int dx, int dy ) {
         for( const Bond& bond : this->atoms[ iAtomIn ].bonds ) {
             const size_t& iAtomOut = bond.iAtom;
             bool b_in_group = find( begin( group.atoms ), end( group.atoms ), iAtomOut ) != end( group.atoms );
-            if( b_in_group ) continue; 
+            if( b_in_group ) continue;
             const Atom& atomIn  = this->atoms[ iAtomIn ];
             const Atom& atomOut = this->atoms[ iAtomOut ];
             if( !isWithinNeighborhood( bond.range, atomIn.x + dx, atomIn.y + dy, atomOut.x, atomOut.y ) ) {
@@ -299,7 +299,7 @@ bool Arena::moveGroupIfPossible( const Group& group, int dx, int dy ) {
         }
     }
     if( !can_move ) return false;
-    // overlap test. 
+    // overlap test.
     // simple implementation for now: remove from grid and try to place in the new position, else replace
     for( const auto& iAtom : group.atoms ) {
         const Atom &atom = this->atoms[ iAtom ];
@@ -463,7 +463,7 @@ bool Arena::moveMembersOfGroupInBlockIfPossible( const Group& group, int x, int 
         }
     }
     /*
-    // overlap check: 
+    // overlap check:
     // simple implementation for now: remove from grid and try to place in the new position, else replace
     for( const size_t& iAtom : movers ) {
         const Atom &atom = this->atoms[ iAtom ];
@@ -493,7 +493,7 @@ bool Arena::moveMembersOfGroupInBlockIfPossible( const Group& group, int x, int 
     */
     return true;
 }
-                                
+
 //----------------------------------------------------------------------------
 
 int Arena::getRandIntInclusive( int a, int b )
@@ -506,16 +506,16 @@ int Arena::getRandIntInclusive( int a, int b )
 void Arena::combineGroupsInvolvingTheseIntoOne( size_t a, size_t b ) {
     // find every group involving a or b
     vector<size_t> groups_to_be_merged;
-	for( size_t iGroup = 0; iGroup < this->groups.size(); ++iGroup ) {
+    for( size_t iGroup = 0; iGroup < this->groups.size(); ++iGroup ) {
         const Group& g = this->groups[ iGroup ];
-		if( find( begin( g.atoms ), end( g.atoms ), a ) != end( g.atoms ) ||
+        if( find( begin( g.atoms ), end( g.atoms ), a ) != end( g.atoms ) ||
                 find( begin( g.atoms ), end( g.atoms ), b ) != end( g.atoms ) )
             groups_to_be_merged.push_back( iGroup );
     }
     if( groups_to_be_merged.size() < 2 )
         return; // nothing to do
 
-	Group& g = this->groups[ groups_to_be_merged.front() ];
+    Group& g = this->groups[ groups_to_be_merged.front() ];
     for( size_t iiGroup = 1; iiGroup < groups_to_be_merged.size(); ++iiGroup ) {
         const Group& gb = this->groups[ groups_to_be_merged[ iiGroup ] ];
         vector<size_t> merged_atoms( g.atoms.size() + gb.atoms.size() );

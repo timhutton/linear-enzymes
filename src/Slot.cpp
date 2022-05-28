@@ -7,17 +7,17 @@ using namespace std;
 
 bool Slot::isEmpty() const
 {
-	return this->atoms.empty();
+    return this->atoms.empty();
 }
 
 void Slot::addAtom( size_t iAtom )
 {
-	this->atoms.push_back( iAtom );
+    this->atoms.push_back( iAtom );
 }
 
 void Slot::removeAtom( size_t iAtom )
 {
-	this->atoms.erase( remove( begin( this->atoms ), end( this->atoms ), iAtom ) );
+    this->atoms.erase( remove( begin( this->atoms ), end( this->atoms ), iAtom ) );
 }
 
 size_t Slot::getAtom( size_t iiAtom )
