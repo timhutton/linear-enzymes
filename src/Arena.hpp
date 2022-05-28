@@ -11,12 +11,12 @@
 // Arena is a square grid world containing atoms
 class Arena {
 
-	public:
-        
+    public:
+
         Arena( int x, int y );
 
-		size_t addAtom( int x, int y, int type );
-		void makeBond( size_t a, size_t b, Neighborhood range );
+        size_t addAtom( int x, int y, int type );
+        void makeBond( size_t a, size_t b, Neighborhood range );
         void breakBond( size_t a, size_t b );
         void update();
 
@@ -29,8 +29,8 @@ class Arena {
         size_t getNumberOfAtoms() const { return this->atoms.size(); }
         Atom getAtom( size_t i ) const { return this->atoms[i]; }
         size_t getNumberOfGroups() const { return this->groups.size(); }
-	
-	private:
+
+    private:
 
         // typedefs
         struct Group { std::vector<size_t> atoms; };
@@ -46,9 +46,9 @@ class Arena {
         // private variables
         const int                         X;
         const int                         Y;
-		std::vector<Atom>                 atoms;
+        std::vector<Atom>                 atoms;
         std::vector<std::vector<Slot>>    grid;
-		std::vector<Group>                groups;
+        std::vector<Group>                groups;
         const MovementMethod              movement_method;
         const Neighborhood                movement_neighborhood;
         const Neighborhood                chemical_neighborhood;
