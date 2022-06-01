@@ -2,11 +2,10 @@
 #include "Arena.hpp"
 
 // stdlib
-#include <limits.h>
-
-// STL:
-#include <stdexcept>
 #include <algorithm>
+#include <climits>
+#include <iostream>
+#include <stdexcept>
 #include <sstream>
 using namespace std;
 
@@ -16,6 +15,7 @@ Arena::Arena(int x, int y)
     : X( x )
     , Y( y )
     , movement_method( MovementMethod::JustAtoms )
+    //, movement_method( MovementMethod::MPEGSpace )
     , movement_neighborhood( Neighborhood::vonNeumann ) // currently only vonNeumann supported
     , chemical_neighborhood( Neighborhood::vonNeumann )
     , proximity( Proximity::SingleOccupancy )
@@ -231,12 +231,13 @@ void Arena::update() {
             }
             break;
         case MPEGSpace: {
+            const int max_block_size = 100;
             for( int i = 0; i < 10; ++i ) {
                 // attempt to move a block
                 int x = getRandIntInclusive( 0, this->X-1 );
                 int y = getRandIntInclusive( 0, this->Y-1 );
-                int w = getRandIntInclusive( 1, this->X-x );
-                int h = getRandIntInclusive( 1, this->Y-y );
+                int w = getRandIntInclusive( 1, std::min(max_block_size, this->X-x) );
+                int h = getRandIntInclusive( 1, std::min(max_block_size, this->Y-y) );
                 int dx, dy;
                 getRandomMove( this->movement_neighborhood, dx, dy );
                 moveBlockIfPossible( x, y, w, h, dx, dy );
@@ -335,7 +336,7 @@ bool Arena::moveBlockIfPossible( int x, int y, int w, int h, int dx, int dy ) {
     const int top = y;
     const int bottom = y + h - 1;
     if( isOffGrid( left, top ) || isOffGrid( right, bottom ) )
-        throw out_of_range("Attempt to move block that is not wholy on the grid");
+        throw out_of_range("Attempt to move block that is not wholly on the grid");
     // overlap test along front edge:
     int x1, y1, x2, y2;
     if( dx == 1 )       { x1 = x2 = right;  y1 = top;  y2 = bottom; }
@@ -355,35 +356,38 @@ bool Arena::moveBlockIfPossible( int x, int y, int w, int h, int dx, int dy ) {
     // bond test along back and side edges:
     // TODO: improve test to reject leading edge
     // TODO: find better way of traversing non-leading edges
-    for( int sx = left; sx <= right; ++sx ) {
-        for( int sy = top; sy <= bottom; ++sy ) {
-            if( sx > left && sx < right && sy > top && sy < bottom )
-                continue; // not on the edge of the block
-            if( this->grid[sx][sy].isEmpty() )
-                continue;
-            /*
-            TODO
-            const Atom& a = this->atoms[ this->grid[sx][sy].iAtom ];
-            for( const Bond& bond : a.bonds ) {
-                const size_t iAtomB = bond.iAtom;
-                const Atom& b = this->atoms[ iAtomB ];
-                if( b.x >= left && b.x <= right && b.y >= top && b.y <= bottom )
-                    continue; // atom B is also within the block
-                if( !isWithinNeighborhood( bond.range, sx + dx, sy + dy, b.x, b.y ) )
-                    return false; // would over-stretch this bond
+    const bool forbid_bonds_from_stretching = true;
+    if(forbid_bonds_from_stretching) {
+        for( int sx = left; sx <= right; ++sx ) {
+            for( int sy = top; sy <= bottom; ++sy ) {
+                if( sx > left && sx < right && sy > top && sy < bottom )
+                    continue; // not on the edge of the block
+                if( this->grid[sx][sy].isEmpty() )
+                    continue;
+                for(int iMover = 0; iMover < this->grid[sx][sy].numAtoms(); iMover++) {
+                    const Atom& a = this->atoms[ this->grid[sx][sy].getAtom( iMover ) ];
+                    for( const Bond& bond : a.bonds ) {
+                        const size_t iAtomB = bond.iAtom;
+                        const Atom& b = this->atoms[ iAtomB ];
+                        if( b.x >= left && b.x <= right && b.y >= top && b.y <= bottom )
+                            continue; // atom B is also within the block
+                        if( !isWithinNeighborhood( bond.range, sx + dx, sy + dy, b.x, b.y ) )
+                            return false; // would over-stretch this bond
+                    }
+                }
             }
-            */
         }
     }
     // move the block
-    /* TODO
     vector<size_t> movers;
     for( int sx = left; sx <= right; ++sx ) {
         for( int sy = top; sy <= bottom; ++sy ) {
             if( this->grid[sx][sy].isEmpty() )
                 continue;
-            movers.push_back( this->grid[sx][sy].iAtom );
-            this->grid[sx][sy].has_atom = false;
+            for(int iMover = 0; iMover < this->grid[sx][sy].numAtoms(); iMover++) {
+                movers.push_back( this->grid[sx][sy].getAtom(iMover) );
+            }
+            this->grid[sx][sy].clear();
         }
     }
     for( const size_t& iAtom : movers ) {
@@ -391,11 +395,10 @@ bool Arena::moveBlockIfPossible( int x, int y, int w, int h, int dx, int dy ) {
         a.x += dx;
         a.y += dy;
         if( isOffGrid( a.x, a.y ) )
-            throw exception("internal error");
+            throw std::runtime_error("attempt to move atom off-grid");
         Slot& slot = this->grid[ a.x ][ a.y ];
-        slot.has_atom = true;
-        slot.iAtom = iAtom;
-    }*/
+        slot.addAtom( iAtom );
+    }
     return true;
 }
 
