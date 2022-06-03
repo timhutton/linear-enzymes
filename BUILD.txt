@@ -1,7 +1,7 @@
 1. Install Emscripten:
     https://emscripten.org/
 2. Compile:
-    emcc src/Arena.cpp src/Atom.cpp src/Reaction.cpp src/main.cpp src/Arena_SDL.cpp -s USE_SDL=2 -O3 -o index.js
+    emcc src/Arena.cpp src/Atom.cpp src/Reaction.cpp src/main.cpp src/Arena_SDL.cpp -s USE_SDL=2 -O3 -s ALLOW_MEMORY_GROWTH=1 -o index.js
 3. Start local webserver:
     python server.py
 4. Open:
