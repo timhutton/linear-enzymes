@@ -1,6 +1,5 @@
 // Local:
 #include "Atom.hpp"
-#include "Slot.hpp"
 #include "Neighborhood.hpp"
 #include "Bond.hpp"
 #include "Reaction.hpp"
@@ -28,41 +27,33 @@ class Arena {
         int getArenaHeight() const { return this->Y; }
         size_t getNumberOfAtoms() const { return this->atoms.size(); }
         Atom getAtom( size_t i ) const { return this->atoms[i]; }
-        size_t getNumberOfGroups() const { return this->groups.size(); }
 
     protected:
 
         // typedefs
-        struct Group { std::vector<size_t> atoms; };
         enum MovementMethod { JustAtoms      // atoms can move individually
-                            , AllGroups      // all subgraphs of atoms can move individually
                             , MPEGSpace      // space itself moves around in large blocks
-                            , MPEGMolecules  // molecules are divided spatially into movement blocks on the fly
                             };
         enum Proximity { PassThrough         // atoms can pass through each other; each slot can have multiple atoms
                        , SingleOccupancy     // atoms cannot occupy the same slot
+                       , Compact             // atoms can occupy the same slot under certain conditions
                        };
 
         // private variables
         const int                         X;
         const int                         Y;
         std::vector<Atom>                 atoms;
-        std::vector<std::vector<Slot>>    grid;
-        std::vector<Group>                groups;
+        std::vector<std::vector<std::vector<size_t>>>    grid;
         const MovementMethod              movement_method;
         const Neighborhood                movement_neighborhood;
         const Neighborhood                chemical_neighborhood;
         const Proximity                   proximity;
 
+    private:
+
         // private functions
-        void addAllGroupsForNewBond( size_t a, size_t b );
-        void removeGroupsWithOneButNotTheOther( size_t a, size_t b );
-        void combineGroupsInvolvingTheseIntoOne( size_t a, size_t b );
-        bool moveGroupIfPossible( const Group& group, int dx, int dy );
+        bool moveAtomsIfPossible( int x, int y, int dx, int dy );
         bool moveBlockIfPossible( int x, int y, int w, int h, int dx, int dy );
-        void moveBlocksInGroup( const Group& group );
-        void moveBlocksInGroup( const Group& group, int x, int y, int w, int h );
-        bool moveMembersOfGroupInBlockIfPossible( const Group& group, int x, int y, int w, int h, int dx, int dy  );
         void doChemistry();
         bool hasBond( size_t a, size_t b ) const;
         int getRandomMove() const;
