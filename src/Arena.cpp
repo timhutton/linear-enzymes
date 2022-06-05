@@ -16,6 +16,7 @@ Arena::Arena(int x, int y)
     , Y( y )
     , movement_neighborhood( Neighborhood::vonNeumann ) // currently only vonNeumann supported
     , chemical_neighborhood( Neighborhood::vonNeumann )
+    , bond_neighborhood( Neighborhood::Moore )
 {
     this->grid = vector<vector<vector<size_t>>>( X, vector<vector<size_t>>( Y ) );
 }
@@ -169,7 +170,7 @@ void Arena::moveSlotIfPossible( int x, int y, int tx, int ty ) {
         for( const size_t iOtherAtom : this->atoms[ iAtom ].bonds ) {
             const Atom& atom  = this->atoms[ iAtom ];
             const Atom& otherAtom = this->atoms[ iOtherAtom ];
-            if( !isWithinNeighborhood( this->movement_neighborhood, tx, ty, otherAtom.x, otherAtom.y ) ) {
+            if( !isWithinNeighborhood( this->bond_neighborhood, tx, ty, otherAtom.x, otherAtom.y ) ) {
                 return;
             }
             // (bonds to atoms already in the same slot don't actually need to be checked)
@@ -188,19 +189,22 @@ void Arena::moveSlotIfPossible( int x, int y, int tx, int ty ) {
 void Arena::moveAtomsAlongBonds( int x, int y ) {
     if( this->grid[x][y].empty() )
         return;
+    // pick an atom in this slot at random
     const size_t iiAtom = getRandIntInclusive(0, this->grid[x][y].size()-1);
     const size_t iAtom = this->grid[x][y][iiAtom];
     Atom& atom = this->atoms[iAtom];
     if( atom.bonds.empty() )
         return;
+    // pick a bonded atom at random to move to
     const size_t iBond = getRandIntInclusive(0, atom.bonds.size()-1 );
     const size_t iBondedAtom = atom.bonds[iBond];
     const Atom& bonded_atom = this->atoms[iBondedAtom];
     const int tx = bonded_atom.x;
     const int ty = bonded_atom.y;
+    // would this move stretch any bond too far?
     for( const size_t& iBondedAtom : atom.bonds ) {
         const Atom& bonded_atom = this->atoms[ iBondedAtom ];
-        if( !isWithinNeighborhood( this->movement_neighborhood, tx, ty, bonded_atom.x, bonded_atom.y ) ) {
+        if( !isWithinNeighborhood( this->bond_neighborhood, tx, ty, bonded_atom.x, bonded_atom.y ) ) {
             return;
         }
     }

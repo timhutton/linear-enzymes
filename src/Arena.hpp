@@ -36,6 +36,7 @@ class Arena {
         std::vector<std::vector<std::vector<size_t>>>    grid;
         const Neighborhood                movement_neighborhood;
         const Neighborhood                chemical_neighborhood;
+        const Neighborhood                bond_neighborhood;
 
     private:
 
