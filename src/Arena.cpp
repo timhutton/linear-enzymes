@@ -17,6 +17,7 @@ Arena::Arena(int x, int y)
     , movement_neighborhood( Neighborhood::vonNeumann ) // currently only vonNeumann supported
     , chemical_neighborhood( Neighborhood::vonNeumann )
     , bond_neighborhood( Neighborhood::Moore )
+    , max_slot_capacity( 5 )
 {
     this->grid = vector<vector<vector<size_t>>>( X, vector<vector<size_t>>( Y ) );
 }
@@ -201,6 +202,9 @@ void Arena::moveAtomsAlongBonds( int x, int y ) {
     const Atom& bonded_atom = this->atoms[iBondedAtom];
     const int tx = bonded_atom.x;
     const int ty = bonded_atom.y;
+    // would this overfill the target slot?
+    if( this->grid[tx][ty].size() >= max_slot_capacity )
+        return;
     // would this move stretch any bond too far?
     for( const size_t& iBondedAtom : atom.bonds ) {
         const Atom& bonded_atom = this->atoms[ iBondedAtom ];

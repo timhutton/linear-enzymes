@@ -37,6 +37,7 @@ class Arena {
         const Neighborhood                movement_neighborhood;
         const Neighborhood                chemical_neighborhood;
         const Neighborhood                bond_neighborhood;
+        const size_t                      max_slot_capacity;
 
     private:
 
