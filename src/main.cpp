@@ -73,6 +73,7 @@ int main()
 
 void seed(Arena& arena)
 {
+    // add a cell
     if( 1 ) {
         // some enzymes
         std::vector<std::string> vs;
@@ -89,7 +90,8 @@ void seed(Arena& arena)
         vs.push_back( Reaction( 13, true, 6, 6, true, 13 ).getString() );
         vs.push_back( Reaction( 13, true, 7, 7, true, 13 ).getString() );
         vs.push_back( Reaction( 13, true, 8, 8, true, 13 ).getString() );
-        vs.push_back( "210103" );
+        const std::string dna = "4101011230123012312301220103201035";
+        vs.push_back( dna );
         vs.push_back( Reaction( 12, true, 10, 6, true, 5 ).getString() );
         vs.push_back( Reaction( 13, true, 10, 7, true, 5 ).getString() );
         vs.push_back( Reaction( 2, true, 11, 2, true, 14 ).getString() );
@@ -99,13 +101,18 @@ void seed(Arena& arena)
         vs.push_back( Reaction( 15, false, 4, 14, true, 3 ).getString() );
         vs.push_back( Reaction( 14, true, 10, 2, false, 9 ).getString() );
         int x = 11;
+        size_t e, f;
         for( const std::string& s : vs ) {
             const int N = s.length();
             int y = 10;
-            size_t a = arena.addAtom( x, y, s[0] - '0' );
+            size_t a = arena.addAtom( x, y, s[0] - '0' + 'a', 1 );
+            if( s == dna )
+                e = a;
             for( int i = 1; i < N; ++i ) {
                 y++;
-                size_t a2 = arena.addAtom( x, y, s[i] - '0' );
+                size_t a2 = arena.addAtom( x, y, s[i] - '0' + 'a', 1 );
+                if( s == dna && i==N-1 )
+                    f = a2;
                 arena.makeBond( a, a2 );
                 a = a2;
             }
@@ -115,31 +122,35 @@ void seed(Arena& arena)
         if( 1 ) {
             // a loop around the enzymes
             int x = 9;
-            int y = 8;
-            const size_t a0 = arena.addAtom( x, y, 0 );
+            int y = 9;
+            const size_t a0 = arena.addAtom( x, y, 'a', 1 );
             size_t prev = a0;
             size_t a;
             for(int i = 0; i < vs.size()*2 + 2; i++) {
                 x++;
-                a = arena.addAtom( x, y, 0 );
+                a = arena.addAtom( x, y, 'a', 1 );
                 arena.makeBond(a, prev);
+                if( i == 27 )
+                    arena.makeBond(a, e);
                 prev = a;
             }
-            for(int i = 0; i < vs.front().size() + 3; i++) {
+            for(int i = 0; i < vs.front().size() + 1; i++) {
                 y++;
-                a = arena.addAtom( x, y, 0 );
+                a = arena.addAtom( x, y, 'a', 1 );
                 arena.makeBond(a, prev);
                 prev = a;
             }
             for(int i = 0; i < vs.size()*2 + 2; i++) {
                 x--;
-                a = arena.addAtom( x, y, 0 );
+                a = arena.addAtom( x, y, 'a', 1 );
                 arena.makeBond(a, prev);
+                if( i == 17 )
+                    arena.makeBond(a, f);
                 prev = a;
             }
-            for(int i = 0; i < vs.front().size() + 2; i++) {
+            for(int i = 0; i < vs.front().size(); i++) {
                 y--;
-                a = arena.addAtom( x, y, 0 );
+                a = arena.addAtom( x, y, 'a', 1 );
                 arena.makeBond(a, prev);
                 prev = a;
             }
@@ -153,7 +164,7 @@ void seed(Arena& arena)
             int x = rand() % arena.getArenaWidth();
             int y = rand() % arena.getArenaHeight();
             if( !arena.hasAtom( x, y ) )
-                arena.addAtom( x, y, 4 );
+                arena.addAtom( x, y, "abcdef"[Arena::getRandIntInclusive(0, 5)], 0 );
         }
     }
 }

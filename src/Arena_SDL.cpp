@@ -31,8 +31,8 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
     for(const Atom& atom : atoms)
     {
         // draw the cell
-        SDL_Color color = GetColor("abcdef"[atom.state%6]);
-        const int alpha = (atom.state == 4) ? 10 : 255;
+        SDL_Color color = GetColor(atom.type);
+        const int alpha = (atom.state == 0) ? 10 : 255;
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
         SDL_Rect r;
         r.x = atom.x*scale;

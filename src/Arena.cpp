@@ -39,7 +39,7 @@ bool Arena::hasAtom( int x, int y ) const {
 
 //----------------------------------------------------------------------------
 
-size_t Arena::addAtom( int x, int y, int state ) {
+size_t Arena::addAtom( int x, int y, char type, int state ) {
 
     if( isOffGrid(x,y ) )
         throw out_of_range("Atom not on grid");
@@ -47,6 +47,7 @@ size_t Arena::addAtom( int x, int y, int state ) {
     Atom a;
     a.x = x;
     a.y = y;
+    a.type = type;
     a.state = state;
     this->atoms.push_back( a );
     size_t iAtom = this->atoms.size()-1;

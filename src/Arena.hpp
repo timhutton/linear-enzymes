@@ -13,7 +13,7 @@ class Arena {
 
         Arena( int x, int y );
 
-        size_t addAtom( int x, int y, int type );
+        size_t addAtom( int x, int y, char type, int state );
         bool hasBond( size_t a, size_t b ) const;
         void makeBond( size_t a, size_t b );
         void breakBond( size_t a, size_t b );
@@ -26,6 +26,8 @@ class Arena {
         int getArenaHeight() const { return this->Y; }
         size_t getNumberOfAtoms() const { return this->atoms.size(); }
         Atom getAtom( size_t i ) const { return this->atoms[i]; }
+
+        static int getRandIntInclusive( int a, int b );
 
     protected:
 
@@ -53,6 +55,5 @@ class Arena {
 
         // useful functions
         static bool isWithinNeighborhood( Neighborhood type, int x1, int y1, int x2, int y2 );
-        static int getRandIntInclusive( int a, int b );
         static void getRandomMove( Neighborhood nhood, int& dx, int& dy );
 };
