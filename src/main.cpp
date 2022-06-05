@@ -111,6 +111,40 @@ void seed(Arena& arena)
             }
             x += 2;
         }
+
+        if( 1 ) {
+            // a loop around the enzymes
+            int x = 9;
+            int y = 8;
+            const size_t a0 = arena.addAtom( x, y, 0 );
+            size_t prev = a0;
+            size_t a;
+            for(int i = 0; i < vs.size()*2 + 2; i++) {
+                x++;
+                a = arena.addAtom( x, y, 0 );
+                arena.makeBond(a, prev);
+                prev = a;
+            }
+            for(int i = 0; i < vs.front().size() + 3; i++) {
+                y++;
+                a = arena.addAtom( x, y, 0 );
+                arena.makeBond(a, prev);
+                prev = a;
+            }
+            for(int i = 0; i < vs.size()*2 + 2; i++) {
+                x--;
+                a = arena.addAtom( x, y, 0 );
+                arena.makeBond(a, prev);
+                prev = a;
+            }
+            for(int i = 0; i < vs.front().size() + 2; i++) {
+                y--;
+                a = arena.addAtom( x, y, 0 );
+                arena.makeBond(a, prev);
+                prev = a;
+            }
+            arena.makeBond(a, a0);
+        }
     }
 
     if( 1 ) {

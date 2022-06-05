@@ -22,8 +22,6 @@ SDL_Color GetColor(char type)
 
 void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
 {
-    static const int OFFSET = 20;
-
     // clear the background
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
@@ -37,8 +35,8 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
         const int alpha = (atom.state == 4) ? 10 : 255;
         SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
         SDL_Rect r;
-        r.x = atom.x*scale + OFFSET;
-        r.y = atom.y*scale + OFFSET;
+        r.x = atom.x*scale;
+        r.y = atom.y*scale;
         r.w = scale;
         r.h = scale;
         SDL_RenderFillRect(renderer, &r);
@@ -56,10 +54,10 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
                 if(iOtherAtom < iAtom) continue; // (avoid drawing the same line more than once)
 
                 SDL_RenderDrawLine(renderer,
-                    int(atoms[iAtom].x*scale)+OFFSET,
-                    int(atoms[iAtom].y*scale)+OFFSET,
-                    int(atoms[iOtherAtom].x*scale)+OFFSET,
-                    int(atoms[iOtherAtom].y*scale)+OFFSET);
+                    atoms[iAtom].x * scale + scale / 2,
+                    atoms[iAtom].y * scale + scale / 2,
+                    atoms[iOtherAtom].x * scale + scale / 2,
+                    atoms[iOtherAtom].y * scale + scale / 2);
             }
         }
     }

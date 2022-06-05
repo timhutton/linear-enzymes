@@ -14,7 +14,7 @@ using namespace std;
 Arena::Arena(int x, int y)
     : X( x )
     , Y( y )
-    , movement_neighborhood( Neighborhood::vonNeumann ) // currently only vonNeumann supported
+    , movement_neighborhood( Neighborhood::Moore )
     , chemical_neighborhood( Neighborhood::vonNeumann )
     , bond_neighborhood( Neighborhood::Moore )
     , max_slot_capacity( 5 )
