@@ -14,13 +14,8 @@ using namespace std;
 Arena::Arena(int x, int y)
     : X( x )
     , Y( y )
-    , movement_method( MovementMethod::JustAtoms )
-    //, movement_method( MovementMethod::MPEGSpace )
     , movement_neighborhood( Neighborhood::vonNeumann ) // currently only vonNeumann supported
     , chemical_neighborhood( Neighborhood::vonNeumann )
-    //, proximity( Proximity::SingleOccupancy )
-    //, proximity( Proximity::PassThrough )
-    , proximity( Proximity::Compact )
 {
     this->grid = vector<vector<vector<size_t>>>( X, vector<vector<size_t>>( Y ) );
 }
@@ -38,19 +33,6 @@ bool Arena::hasAtom( int x, int y ) const {
         throw out_of_range("Atom not on grid");
 
     return !this->grid[x][y].empty();
-}
-
-//----------------------------------------------------------------------------
-
-bool Arena::canPlaceAtom( int x, int y ) const {
-    switch( this->proximity ) {
-        default:
-        case PassThrough:
-        case Compact:
-            return true;
-        case SingleOccupancy:
-            return this->grid[ x ][ y ].empty();
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -74,20 +56,18 @@ size_t Arena::addAtom( int x, int y, int state ) {
 
 //----------------------------------------------------------------------------
 
-void Arena::makeBond( size_t a, size_t b, Neighborhood range ) {
+void Arena::makeBond( size_t a, size_t b ) {
     if( a < 0 || a >= atoms.size() || b < 0 || b >= atoms.size() )
         throw out_of_range("Invalid atom index");
     if( a == b )
         throw invalid_argument("Cannot bond atom to itself");
-    if( !isWithinNeighborhood( range, this->atoms[a].x, this->atoms[a].y, this->atoms[b].x, this->atoms[b].y ) )
+    if( !isWithinNeighborhood( this->chemical_neighborhood, this->atoms[a].x, this->atoms[a].y, this->atoms[b].x, this->atoms[b].y ) )
         throw invalid_argument("Atoms are too far apart to be bonded");
     if( hasBond( a, b ) )
         throw invalid_argument("Atoms are already bonded");
 
-    Bond ab = { b, range };
-    this->atoms[ a ].bonds.push_back( ab );
-    Bond ba = { a, range };
-    this->atoms[ b ].bonds.push_back( ba );
+    this->atoms[ a ].bonds.push_back( b );
+    this->atoms[ b ].bonds.push_back( a );
 }
 
 //----------------------------------------------------------------------------
@@ -95,11 +75,11 @@ void Arena::makeBond( size_t a, size_t b, Neighborhood range ) {
 bool Arena::isWithinNeighborhood( Neighborhood type, int x1, int y1, int x2, int y2 ) {
     const int r2 = (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
     switch( type ) {
-        case vonNeumann:  return r2 <= 1;
-        case Moore:       return r2 <= 2;
-        case vonNeumann2: return r2 <= 4;
-        case knight:      return r2 <= 5;
-        case Moore2:      return r2 <= 8;
+        case Neighborhood::vonNeumann:  return r2 <= 1;
+        case Neighborhood::Moore:       return r2 <= 2;
+        case Neighborhood::vonNeumann2: return r2 <= 4;
+        case Neighborhood::knight:      return r2 <= 5;
+        case Neighborhood::Moore2:      return r2 <= 8;
     }
     throw out_of_range("unexpected enum");
 }
@@ -131,33 +111,23 @@ void Arena::getRandomMove( Neighborhood nhood, int &dx, int &dy ) {
 //----------------------------------------------------------------------------
 
 void Arena::update() {
-    switch( this->movement_method ) {
-        case JustAtoms:
-            // attempt to move every slot
-            for(int x = 0; x < X; x++ ) {
-                for(int y = 0; y < Y; y++ ) {
-                    if( this->grid[x][y].empty() )
-                        continue;
-                    int dx, dy;
-                    getRandomMove( this->movement_neighborhood, dx, dy );
-                    moveAtomsIfPossible( x, y, dx, dy );
-                }
-            }
-            break;
-        case MPEGSpace: {
-            const int max_block_size = 100;
-            for( int i = 0; i < 10; ++i ) {
-                // attempt to move a block
-                int x = getRandIntInclusive( 0, this->X-1 );
-                int y = getRandIntInclusive( 0, this->Y-1 );
-                int w = getRandIntInclusive( 1, std::min(max_block_size, this->X-x) );
-                int h = getRandIntInclusive( 1, std::min(max_block_size, this->Y-y) );
-                int dx, dy;
-                getRandomMove( this->movement_neighborhood, dx, dy );
-                moveBlockIfPossible( x, y, w, h, dx, dy );
-            }
-            break;
-        }
+    // attempt to move some slots
+    for(int i = 0; i < this->X * this->Y; i++) {
+        int x = getRandIntInclusive( 0, this->X-1 );
+        int y = getRandIntInclusive( 0, this->Y-1 );
+        if( this->grid[x][y].empty() )
+            continue;
+        int dx, dy;
+        getRandomMove( this->movement_neighborhood, dx, dy );
+        moveSlotIfPossible( x, y, x + dx, y + dy );
+    }
+    // attempt to move some atoms
+    for(int i = 0; i < this->X * this->Y; i++) {
+        int x = getRandIntInclusive( 0, this->X-1 );
+        int y = getRandIntInclusive( 0, this->Y-1 );
+        if( this->grid[x][y].empty() )
+            continue;
+        moveAtomsAlongBonds( x, y );
     }
 
     // find chemical reactions
@@ -191,101 +161,55 @@ void Arena::doChemistry() {
 
 //----------------------------------------------------------------------------
 
-bool Arena::moveAtomsIfPossible( int x, int y, int dx, int dy ) {
-    if( isOffGrid(x+dx, y+dy) )
-        return false;
+void Arena::moveSlotIfPossible( int x, int y, int tx, int ty ) {
+    if( isOffGrid(tx, ty) || !this->grid[tx][ty].empty() )
+        return;
     // would this move stretch any bond too far?
-    for( const size_t& iAtomIn : this->grid[x][y] ) {
-        for( const Bond& bond : this->atoms[ iAtomIn ].bonds ) {
-            const size_t& iAtomOut = bond.iAtom;
-            const Atom& atomIn  = this->atoms[ iAtomIn ];
-            const Atom& atomOut = this->atoms[ iAtomOut ];
-            if( !isWithinNeighborhood( bond.range, atomIn.x + dx, atomIn.y + dy, atomOut.x, atomOut.y ) ) {
-                return false;
+    for( const size_t iAtom : this->grid[x][y] ) {
+        for( const size_t iOtherAtom : this->atoms[ iAtom ].bonds ) {
+            const Atom& atom  = this->atoms[ iAtom ];
+            const Atom& otherAtom = this->atoms[ iOtherAtom ];
+            if( !isWithinNeighborhood( this->movement_neighborhood, tx, ty, otherAtom.x, otherAtom.y ) ) {
+                return;
             }
+            // (bonds to atoms already in the same slot don't actually need to be checked)
         }
     }
-    for( const auto& iAtom : this->grid[x][y] ) {
+    for( const size_t iAtom : this->grid[x][y] ) {
         Atom &atom = this->atoms[ iAtom ];
-        atom.x += dx;
-        atom.y += dy;
+        atom.x = tx;
+        atom.y = ty;
         this->grid[ atom.x ][ atom.y ].push_back( iAtom );
     }
-    this->grid[x][y].clear();
-    return true;
+    this->grid[ x ][ y ].clear();
 }
-
 //----------------------------------------------------------------------------
 
-bool Arena::moveBlockIfPossible( int x, int y, int w, int h, int dx, int dy ) {
-    const int left = x;
-    const int right = x + w - 1;
-    const int top = y;
-    const int bottom = y + h - 1;
-    if( isOffGrid( left, top ) || isOffGrid( right, bottom ) )
-        throw out_of_range("Attempt to move block that is not wholly on the grid");
-    // overlap test along front edge:
-    int x1, y1, x2, y2;
-    if( dx == 1 )       { x1 = x2 = right;  y1 = top;  y2 = bottom; }
-    else if( dx == -1 ) { x1 = x2 = left;   y1 = top;  y2 = bottom; }
-    else if( dy == 1 )  { y1 = y2 = bottom; x1 = left; x2 = right;  }
-    else if( dy == -1 ) { y1 = y2 = top;    x1 = left; x2 = right;  }
-    for( int sx = x1; sx <= x2; ++sx ) {
-        for( int sy = y1; sy <= y2; ++sy ) {
-            if( this->grid[sx][sy].empty() )
-                continue;
-            int tx = sx + dx;
-            int ty = sy + dy;
-            if( isOffGrid(tx,ty) || !this->grid[tx][ty].empty() )
-                return false;
+void Arena::moveAtomsAlongBonds( int x, int y ) {
+    if( this->grid[x][y].empty() )
+        return;
+    const size_t iiAtom = getRandIntInclusive(0, this->grid[x][y].size()-1);
+    const size_t iAtom = this->grid[x][y][iiAtom];
+    Atom& atom = this->atoms[iAtom];
+    if( atom.bonds.empty() )
+        return;
+    const size_t iBond = getRandIntInclusive(0, atom.bonds.size()-1 );
+    const size_t iBondedAtom = atom.bonds[iBond];
+    const Atom& bonded_atom = this->atoms[iBondedAtom];
+    const int tx = bonded_atom.x;
+    const int ty = bonded_atom.y;
+    for( const size_t& iBondedAtom : atom.bonds ) {
+        const Atom& bonded_atom = this->atoms[ iBondedAtom ];
+        if( !isWithinNeighborhood( this->movement_neighborhood, tx, ty, bonded_atom.x, bonded_atom.y ) ) {
+            return;
         }
     }
-    // bond test along back and side edges:
-    // TODO: improve test to reject leading edge
-    // TODO: find better way of traversing non-leading edges
-    const bool forbid_bonds_from_stretching = true;
-    if(forbid_bonds_from_stretching) {
-        for( int sx = left; sx <= right; ++sx ) {
-            for( int sy = top; sy <= bottom; ++sy ) {
-                if( sx > left && sx < right && sy > top && sy < bottom )
-                    continue; // not on the edge of the block
-                if( this->grid[sx][sy].empty() )
-                    continue;
-                for(int iMover = 0; iMover < this->grid[sx][sy].size(); iMover++) {
-                    const Atom& a = this->atoms[ this->grid[sx][sy][iMover] ];
-                    for( const Bond& bond : a.bonds ) {
-                        const size_t iAtomB = bond.iAtom;
-                        const Atom& b = this->atoms[ iAtomB ];
-                        if( b.x >= left && b.x <= right && b.y >= top && b.y <= bottom )
-                            continue; // atom B is also within the block
-                        if( !isWithinNeighborhood( bond.range, sx + dx, sy + dy, b.x, b.y ) )
-                            return false; // would over-stretch this bond
-                    }
-                }
-            }
-        }
-    }
-    // move the block
-    vector<size_t> movers;
-    for( int sx = left; sx <= right; ++sx ) {
-        for( int sy = top; sy <= bottom; ++sy ) {
-            if( this->grid[sx][sy].empty() )
-                continue;
-            for(int iMover = 0; iMover < this->grid[sx][sy].size(); iMover++) {
-                movers.push_back( this->grid[sx][sy][iMover] );
-            }
-            this->grid[sx][sy].clear();
-        }
-    }
-    for( const size_t& iAtom : movers ) {
-        Atom& a = this->atoms[ iAtom ];
-        a.x += dx;
-        a.y += dy;
-        if( isOffGrid( a.x, a.y ) )
-            throw std::runtime_error("attempt to move atom off-grid");
-        this->grid[ a.x ][ a.y ].push_back( iAtom );
-    }
-    return true;
+    // remove the atom from its current slot
+    this->grid[x][y].erase( this->grid[x][y].begin() + iiAtom );
+    // put it in the new slot
+    this->grid[tx][ty].push_back(iAtom);
+    atom.x = tx;
+    atom.y = ty;
 }
 
 //----------------------------------------------------------------------------
@@ -298,8 +222,8 @@ int Arena::getRandIntInclusive( int a, int b )
 //----------------------------------------------------------------------------
 
 bool Arena::hasBond( size_t a, size_t b ) const {
-    for( const Bond& bond : this->atoms[ a ].bonds ) {
-        if( bond.iAtom == b )
+    for( const size_t& iAtom : this->atoms[ a ].bonds ) {
+        if( iAtom == b )
             return true;
     }
     return false;
@@ -342,7 +266,7 @@ void Arena::detectEnzymes() {
                                 a.state = r.a_post;
                                 b.state = r.b_post;
                                 if( !bonded && r.bonded_post )
-                                    makeBond( iA, iB, Neighborhood::Moore );
+                                    makeBond( iA, iB );
                                 else if( bonded && !r.bonded_post )
                                     breakBond( iA, iB );
                             }
@@ -373,19 +297,19 @@ bool Arena::isEnzyme( size_t iAtom, Reaction& r ) {
 
 //----------------------------------------------------------------------------
 
-bool Arena::collectEnzymeBits( size_t iAtom, const Bond& bond, string& s ) {
+bool Arena::collectEnzymeBits( size_t iAtom, size_t iNextAtom, string& s ) {
     // follow this bond, collecting the values in s if still a valid enzyme
-    const Atom& new_atom = this->atoms[ bond.iAtom ];
-    if( new_atom.bonds.size() > 2 ) return false;
-    s += new_atom.state + '0';
+    const Atom& next_atom = this->atoms[ iNextAtom ];
+    if( next_atom.bonds.size() > 2 ) return false;
+    s += next_atom.state + '0';
     if( !Reaction::validSoFar( s ) )
         return false;
     if( Reaction::isValid( s ) )
         return true;
 
-    for( const auto& new_bond : new_atom.bonds ) {
-        if( new_bond.iAtom != iAtom )
-            return collectEnzymeBits( bond.iAtom, new_bond, s );
+    for( const size_t& iNextNextAtom : next_atom.bonds ) {
+        if( iNextNextAtom != iAtom )
+            return collectEnzymeBits( iNextAtom, iNextNextAtom, s );
     }
     return false;
 }
@@ -395,14 +319,14 @@ bool Arena::collectEnzymeBits( size_t iAtom, const Bond& bond, string& s ) {
 void Arena::breakBond( size_t iA, size_t iB ) {
     Atom& a = this->atoms[ iA ];
     Atom& b = this->atoms[ iB ];
-    for( vector<Bond>::const_iterator it = begin( a.bonds ); it != end( a.bonds ); ++it ) {
-        if( it->iAtom == iB ) {
+    for( vector<size_t>::const_iterator it = begin( a.bonds ); it != end( a.bonds ); ++it ) {
+        if( *it == iB ) {
             a.bonds.erase( it );
             break;
         }
     }
-    for( vector<Bond>::const_iterator it = begin( b.bonds ); it != end( b.bonds ); ++it ) {
-        if( it->iAtom == iA ) {
+    for( vector<size_t>::const_iterator it = begin( b.bonds ); it != end( b.bonds ); ++it ) {
+        if( *it == iA ) {
             b.bonds.erase( it );
             break;
         }

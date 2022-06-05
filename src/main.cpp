@@ -73,93 +73,6 @@ int main()
 
 void seed(Arena& arena)
 {
-    Neighborhood bond_range = Neighborhood::Moore;
-
-    // an 8-cell loop with some rigid sections
-    if( 0 ) {
-        size_t a = arena.addAtom( 1, 1, 0 );
-        size_t b = arena.addAtom( 2, 1, 0 );
-        size_t c = arena.addAtom( 2, 2, 0 );
-        size_t d = arena.addAtom( 1, 2, 0 );
-        size_t e = arena.addAtom( 1, 3, 0 );
-        size_t f = arena.addAtom( 0, 3, 0 );
-        size_t g = arena.addAtom( 0, 2, 0 );
-        size_t h = arena.addAtom( 0, 1, 0 );
-        arena.makeBond( a, b, Neighborhood::vonNeumann );
-        arena.makeBond( b, c, Neighborhood::vonNeumann );
-        arena.makeBond( c, d, Neighborhood::Moore );
-        arena.makeBond( d, e, Neighborhood::Moore );
-        arena.makeBond( e, f, Neighborhood::vonNeumann );
-        arena.makeBond( f, g, Neighborhood::Moore );
-        arena.makeBond( g, h, Neighborhood::vonNeumann );
-        arena.makeBond( h, a, Neighborhood::Moore );
-    }
-
-    // a box with flailing arms
-    if( 0 ) {
-        size_t a = arena.addAtom( 10, 10, 1 );
-        size_t b = arena.addAtom( 11, 10, 1 );
-        size_t c = arena.addAtom( 12, 10, 1 );
-        size_t d = arena.addAtom( 12, 11, 1 );
-        size_t e = arena.addAtom( 11, 11, 1 );
-        size_t f = arena.addAtom( 10, 11, 1 );
-        size_t g = arena.addAtom( 10, 12, 1 );
-        size_t h = arena.addAtom( 11, 12, 1 );
-        size_t i = arena.addAtom( 12, 12, 1 );
-        size_t j = arena.addAtom( 9, 9, 1 );
-        size_t k = arena.addAtom( 8, 8, 1 );
-        size_t l = arena.addAtom( 7, 7, 1 );
-        size_t m = arena.addAtom( 11, 9, 1 );
-        size_t n = arena.addAtom( 12, 8, 1 );
-        size_t o = arena.addAtom( 13, 7, 1 );
-        arena.makeBond( a, b, Neighborhood::vonNeumann );
-        arena.makeBond( b, c, Neighborhood::vonNeumann );
-        arena.makeBond( c, d, Neighborhood::vonNeumann );
-        arena.makeBond( d, e, Neighborhood::vonNeumann );
-        arena.makeBond( e, f, Neighborhood::vonNeumann );
-        arena.makeBond( f, g, Neighborhood::vonNeumann );
-        arena.makeBond( g, h, Neighborhood::vonNeumann );
-        arena.makeBond( h, i, Neighborhood::vonNeumann );
-        arena.makeBond( a, j, Neighborhood::Moore );
-        arena.makeBond( j, k, Neighborhood::Moore );
-        arena.makeBond( k, l, Neighborhood::Moore );
-        arena.makeBond( c, m, Neighborhood::Moore );
-        arena.makeBond( m, n, Neighborhood::Moore );
-        arena.makeBond( n, o, Neighborhood::Moore );
-    }
-
-    // a double-stranded molecule
-    if( 0 ) {
-        size_t a = arena.addAtom( 21, 21, 5 );
-        size_t b = arena.addAtom( 22, 21, 3 );
-        size_t c = arena.addAtom( 21, 22, 5 );
-        size_t d = arena.addAtom( 22, 22, 3 );
-        size_t e = arena.addAtom( 21, 23, 5 );
-        size_t f = arena.addAtom( 22, 23, 3 );
-        size_t g = arena.addAtom( 21, 24, 5 );
-        size_t h = arena.addAtom( 22, 24, 3 );
-        size_t i = arena.addAtom( 21, 25, 5 );
-        size_t j = arena.addAtom( 22, 25, 3 );
-        size_t k = arena.addAtom( 21, 26, 5 );
-        size_t l = arena.addAtom( 22, 26, 3 );
-        arena.makeBond( a, b, bond_range );
-        arena.makeBond( c, d, bond_range );
-        arena.makeBond( e, f, bond_range );
-        arena.makeBond( g, h, bond_range );
-        arena.makeBond( i, j, bond_range );
-        arena.makeBond( k, l, bond_range );
-        arena.makeBond( a, c, bond_range );
-        arena.makeBond( b, d, bond_range );
-        arena.makeBond( c, e, bond_range );
-        arena.makeBond( d, f, bond_range );
-        arena.makeBond( e, g, bond_range );
-        arena.makeBond( f, h, bond_range );
-        arena.makeBond( g, i, bond_range );
-        arena.makeBond( h, j, bond_range );
-        arena.makeBond( i, k, bond_range );
-        arena.makeBond( j, l, bond_range );
-    }
-
     if( 1 ) {
         // some enzymes
         std::vector<std::string> vs;
@@ -193,7 +106,7 @@ void seed(Arena& arena)
             for( int i = 1; i < N; ++i ) {
                 y++;
                 size_t a2 = arena.addAtom( x, y, s[i] - '0' );
-                arena.makeBond( a, a2, bond_range );
+                arena.makeBond( a, a2 );
                 a = a2;
             }
             x += 2;

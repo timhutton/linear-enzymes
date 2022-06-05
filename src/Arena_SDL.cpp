@@ -51,15 +51,15 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
         for(int iAtom = 0; iAtom < atoms.size(); iAtom++)
         {
             // draw the atoms's bonds as lines
-            for(const Bond& bond : atoms[iAtom].bonds)
+            for(const size_t iOtherAtom : atoms[iAtom].bonds)
             {
-                if(bond.iAtom < iAtom) continue; // (avoid drawing the same line more than once)
+                if(iOtherAtom < iAtom) continue; // (avoid drawing the same line more than once)
 
                 SDL_RenderDrawLine(renderer,
                     int(atoms[iAtom].x*scale)+OFFSET,
                     int(atoms[iAtom].y*scale)+OFFSET,
-                    int(atoms[bond.iAtom].x*scale)+OFFSET,
-                    int(atoms[bond.iAtom].y*scale)+OFFSET);
+                    int(atoms[iOtherAtom].x*scale)+OFFSET,
+                    int(atoms[iOtherAtom].y*scale)+OFFSET);
             }
         }
     }

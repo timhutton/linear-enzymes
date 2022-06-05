@@ -2,7 +2,7 @@
 
 bool Atom::hasBondWith( size_t iAtom ) {
     for( const auto& bond : this->bonds )
-        if( bond.iAtom == iAtom )
+        if( bond == iAtom )
             return true;
     return false;
 }
