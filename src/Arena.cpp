@@ -17,7 +17,7 @@ Arena::Arena(int x, int y)
     , movement_neighborhood( Neighborhood::Moore )
     , chemical_neighborhood( Neighborhood::vonNeumann )
     , bond_neighborhood( Neighborhood::Moore )
-    , max_slot_capacity( 5 )
+    , max_slot_capacity( 20 )
 {
     this->grid = vector<vector<vector<size_t>>>( X, vector<vector<size_t>>( Y ) );
 }
@@ -123,6 +123,16 @@ void Arena::update() {
         getRandomMove( this->movement_neighborhood, dx, dy );
         moveSlotIfPossible( x, y, x + dx, y + dy );
     }
+    // attempt to move some atoms with exit bonds into empty slots
+    for(int i = 0; i < this->X * this->Y; i++) {
+        int x = getRandIntInclusive( 0, this->X-1 );
+        int y = getRandIntInclusive( 0, this->Y-1 );
+        if( this->grid[x][y].empty() )
+            continue;
+        int dx, dy;
+        getRandomMove( Neighborhood::vonNeumann, dx, dy );
+        moveAtomsOutOfSlot( x, y, x + dx, y + dy );
+    }
     // attempt to move some atoms
     for(int i = 0; i < this->X * this->Y; i++) {
         int x = getRandIntInclusive( 0, this->X-1 );
@@ -218,6 +228,42 @@ void Arena::moveAtomsAlongBonds( int x, int y ) {
     this->grid[tx][ty].push_back(iAtom);
     atom.x = tx;
     atom.y = ty;
+}
+
+//----------------------------------------------------------------------------
+
+void Arena::moveAtomsOutOfSlot( int x, int y, int tx, int ty ) {
+    //std::cout << "In moveAtomsOutOfSlot" << std::endl;
+    // move an atom with an exit bond into an empty slot
+    if( this->grid[x][y].empty() || isOffGrid(tx, ty) || !this->grid[tx][ty].empty() )
+        return;
+    // pick an atom in this slot at random
+    const size_t iiAtom = getRandIntInclusive(0, this->grid[x][y].size()-1);
+    const size_t iAtom = this->grid[x][y][iiAtom];
+    Atom& atom = this->atoms[iAtom];
+    if( atom.bonds.empty() )
+        return;
+    // would this move stretch any bond too far?
+    // does this atom have any exit bonds?
+    bool exit_bond_found = false;
+    for( const size_t& iBondedAtom : atom.bonds ) {
+        const Atom& bonded_atom = this->atoms[ iBondedAtom ];
+        if( !isWithinNeighborhood( this->bond_neighborhood, tx, ty, bonded_atom.x, bonded_atom.y ) ) {
+            return;
+        }
+        if( bonded_atom.x != x || bonded_atom.y != y )
+            exit_bond_found = true;
+    }
+    if( !exit_bond_found )
+        return;
+    //std::cout << "about to move atom" << std::endl;
+    // remove the atom from its current slot
+    this->grid[x][y].erase( this->grid[x][y].begin() + iiAtom );
+    // put it in the new slot
+    this->grid[tx][ty].push_back(iAtom);
+    atom.x = tx;
+    atom.y = ty;
+    //std::cout << "Exiting moveAtomsOutOfSlot" << std::endl;
 }
 
 //----------------------------------------------------------------------------

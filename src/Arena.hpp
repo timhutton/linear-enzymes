@@ -44,6 +44,7 @@ class Arena {
         // private functions
         void moveSlotIfPossible( int x, int y, int tx, int ty );
         void moveAtomsAlongBonds( int x, int y );
+        void moveAtomsOutOfSlot( int x, int y, int tx, int ty );
         void doChemistry();
         int getRandomMove() const;
         void detectEnzymes();
