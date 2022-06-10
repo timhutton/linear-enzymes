@@ -44,7 +44,7 @@ class Arena {
     private:
 
         // private functions
-        void moveSlotIfPossible( int x, int y, int tx, int ty );
+        void moveSlotToEmptySquareIfPossible( int x, int y, int tx, int ty );
         void moveAtomsAlongBonds( int x, int y );
         void moveAtomsOutOfSlot( int x, int y, int tx, int ty );
         void doChemistry();
@@ -52,6 +52,7 @@ class Arena {
         void detectEnzymes();
         bool isEnzyme( size_t iAtom, Reaction& r );
         bool collectEnzymeBits( size_t iAtom, size_t iNextAtom, std::string& s );
+        size_t getNumExitBonds( int x, int y);
 
         // useful functions
         static bool isWithinNeighborhood( Neighborhood type, int x1, int y1, int x2, int y2 );

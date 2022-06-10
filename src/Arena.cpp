@@ -122,7 +122,7 @@ void Arena::update() {
             continue;
         int dx, dy;
         getRandomMove( this->movement_neighborhood, dx, dy );
-        moveSlotIfPossible( x, y, x + dx, y + dy );
+        moveSlotToEmptySquareIfPossible( x, y, x + dx, y + dy );
     }
     // attempt to move some atoms with exit bonds into empty slots
     for(int i = 0; i < this->X * this->Y; i++) {
@@ -174,7 +174,7 @@ void Arena::doChemistry() {
 
 //----------------------------------------------------------------------------
 
-void Arena::moveSlotIfPossible( int x, int y, int tx, int ty ) {
+void Arena::moveSlotToEmptySquareIfPossible( int x, int y, int tx, int ty ) {
     if( isOffGrid(tx, ty) || !this->grid[tx][ty].empty() )
         return;
     // would this move stretch any bond too far?
@@ -186,6 +186,7 @@ void Arena::moveSlotIfPossible( int x, int y, int tx, int ty ) {
                 return;
             }
             // (bonds to atoms already in the same slot don't actually need to be checked)
+            // (atoms in the slot being moved don't actually need to be checked)
         }
     }
     for( const size_t iAtom : this->grid[x][y] ) {
@@ -196,6 +197,21 @@ void Arena::moveSlotIfPossible( int x, int y, int tx, int ty ) {
     }
     this->grid[ x ][ y ].clear();
 }
+
+//----------------------------------------------------------------------------
+
+size_t Arena::getNumExitBonds( int x, int y) {
+    size_t num_exit_bonds = 0;
+    for( const size_t iAtom : this->grid[x][y] ) {
+        for( const size_t iOtherAtom : this->atoms[ iAtom ].bonds ) {
+            const Atom& otherAtom = this->atoms[iAtom];
+            if( otherAtom.x != x || otherAtom.y != y )
+                num_exit_bonds++;
+        }
+    }
+    return num_exit_bonds;
+}
+
 //----------------------------------------------------------------------------
 
 void Arena::moveAtomsAlongBonds( int x, int y ) {
@@ -213,6 +229,9 @@ void Arena::moveAtomsAlongBonds( int x, int y ) {
     const Atom& bonded_atom = this->atoms[iBondedAtom];
     const int tx = bonded_atom.x;
     const int ty = bonded_atom.y;
+    // must be in a different location
+    if( tx == x && ty == y )
+        return;
     // would this overfill the target slot?
     if( this->grid[tx][ty].size() >= max_slot_capacity )
         return;
@@ -223,6 +242,9 @@ void Arena::moveAtomsAlongBonds( int x, int y ) {
             return;
         }
     }
+    // don't move to a slot with more than two exit bonds
+    if( getNumExitBonds( tx, ty ) > 2 )
+        return;
     // remove the atom from its current slot
     this->grid[x][y].erase( this->grid[x][y].begin() + iiAtom );
     // put it in the new slot
