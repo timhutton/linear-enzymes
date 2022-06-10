@@ -256,7 +256,6 @@ void Arena::moveAtomsAlongBonds( int x, int y ) {
 //----------------------------------------------------------------------------
 
 void Arena::moveAtomsOutOfSlot( int x, int y, int tx, int ty ) {
-    //std::cout << "In moveAtomsOutOfSlot" << std::endl;
     // move an atom with an exit bond into an empty slot
     if( this->grid[x][y].empty() || isOffGrid(tx, ty) || !this->grid[tx][ty].empty() )
         return;
@@ -279,14 +278,12 @@ void Arena::moveAtomsOutOfSlot( int x, int y, int tx, int ty ) {
     }
     if( !exit_bond_found )
         return;
-    //std::cout << "about to move atom" << std::endl;
     // remove the atom from its current slot
     this->grid[x][y].erase( this->grid[x][y].begin() + iiAtom );
     // put it in the new slot
     this->grid[tx][ty].push_back(iAtom);
     atom.x = tx;
     atom.y = ty;
-    //std::cout << "Exiting moveAtomsOutOfSlot" << std::endl;
 }
 
 //----------------------------------------------------------------------------
