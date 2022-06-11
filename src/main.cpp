@@ -19,6 +19,8 @@ struct context
     float scale;
 };
 
+bool is_running = true;
+
 void seed(Arena& arena);
 
 void mainloop(void *arg)
@@ -26,17 +28,20 @@ void mainloop(void *arg)
     context *ctx = static_cast<context*>(arg);
     SDL_Renderer *renderer = ctx->renderer;
 
-    const size_t iterations_per_render = 5;
-    for(size_t i = 0; i < iterations_per_render; ++i)
-    {
-        ctx->arena->update();
+    if( is_running ) {
+        const size_t iterations_per_render = 5;
+        for(size_t i = 0; i < iterations_per_render; ++i)
+        {
+            ctx->arena->update();
+        }
+        ctx->arena->Draw(renderer, ctx->scale);
+        ctx->iteration++;
     }
-    ctx->arena->Draw(renderer, ctx->scale);
 
     SDL_RenderPresent(renderer);
-
-    ctx->iteration++;
 }
+
+extern "C" void EMSCRIPTEN_KEEPALIVE toggle_start_stop() { is_running = !is_running; }
 
 int main()
 {

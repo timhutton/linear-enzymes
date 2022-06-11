@@ -114,7 +114,7 @@ void Arena::getRandomMove( Neighborhood nhood, int &dx, int &dy ) {
 //----------------------------------------------------------------------------
 
 void Arena::update() {
-    // attempt to move some slots
+    // attempt to move some slots into empty squares
     for(int i = 0; i < this->X * this->Y; i++) {
         int x = getRandIntInclusive( 0, this->X-1 );
         int y = getRandIntInclusive( 0, this->Y-1 );
@@ -124,7 +124,15 @@ void Arena::update() {
         getRandomMove( this->movement_neighborhood, dx, dy );
         moveSlotToEmptySquareIfPossible( x, y, x + dx, y + dy );
     }
-    // attempt to move some atoms with exit bonds into empty slots
+    // attempt to move some atoms to a slot they are bonded with (allows compaction)
+    for(int i = 0; i < this->X * this->Y; i++) {
+        int x = getRandIntInclusive( 0, this->X-1 );
+        int y = getRandIntInclusive( 0, this->Y-1 );
+        if( this->grid[x][y].empty() )
+            continue;
+        moveAtomsAlongBonds( x, y );
+    }
+    // attempt to move some atoms with exit bonds into empty slots (occasional expansion)
     for(int i = 0; i < this->X * this->Y; i++) {
         int x = getRandIntInclusive( 0, this->X-1 );
         int y = getRandIntInclusive( 0, this->Y-1 );
@@ -133,14 +141,6 @@ void Arena::update() {
         int dx, dy;
         getRandomMove( Neighborhood::vonNeumann, dx, dy );
         moveAtomsOutOfSlot( x, y, x + dx, y + dy );
-    }
-    // attempt to move some atoms
-    for(int i = 0; i < this->X * this->Y; i++) {
-        int x = getRandIntInclusive( 0, this->X-1 );
-        int y = getRandIntInclusive( 0, this->Y-1 );
-        if( this->grid[x][y].empty() )
-            continue;
-        moveAtomsAlongBonds( x, y );
     }
 
     // find chemical reactions
