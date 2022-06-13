@@ -1,0 +1,32 @@
+diff --git a/src/Arena.cpp b/src/Arena.cpp
+index ece234e..b4cd7d1 100644
+--- a/src/Arena.cpp
++++ b/src/Arena.cpp
+@@ -14,8 +14,8 @@ using namespace std;
+ Arena::Arena(int x, int y)
+     : X( x )
+     , Y( y )
+-    , movement_method( MovementMethod::JustAtoms )
+-    //, movement_method( MovementMethod::MPEGSpace )
++    //, movement_method( MovementMethod::JustAtoms )
++    , movement_method( MovementMethod::MPEGSpace )
+     , movement_neighborhood( Neighborhood::vonNeumann ) // currently only vonNeumann supported
+     , chemical_neighborhood( Neighborhood::vonNeumann )
+     , proximity( Proximity::SingleOccupancy )
+diff --git a/src/main.cpp b/src/main.cpp
+index bc844da..e38121c 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -193,10 +193,10 @@ void seed(Arena& arena)
+             for( int i = 1; i < N; ++i ) {
+                 y++;
+                 size_t a2 = arena.addAtom( x, y, s[i] - '0' );
+-                arena.makeBond( a, a2, bond_range );
++                //arena.makeBond( a, a2, bond_range );
+                 a = a2;
+             }
+-            x += 2;
++            x += 1;
+         }
+     }
+ 
