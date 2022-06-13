@@ -53,6 +53,7 @@ class Arena {
         bool isEnzyme( size_t iAtom, Reaction& r );
         bool collectEnzymeBits( size_t iAtom, size_t iNextAtom, std::string& s );
         size_t getNumExitBonds( int x, int y);
+        bool hasBond( int x1, int y1, int x2, int y2 ) const;
 
         // useful functions
         static bool isWithinNeighborhood( Neighborhood type, int x1, int y1, int x2, int y2 );

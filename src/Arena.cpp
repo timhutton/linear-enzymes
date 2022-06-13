@@ -143,6 +143,24 @@ void Arena::update() {
         moveAtomsOutOfSlot( x, y, x + dx, y + dy );
     }
 
+    // DEBUG: check certain conditions
+    if( 1 ) {
+        // does any atom with >2 bonds share a slot?
+        for( const Atom& atom : this->atoms) {
+            if( atom.bonds.size() > 2 && this->grid[atom.x][atom.y].size() > 1 ) {
+                std::cout << "Found atom with >2 bonds found sharing a slot!" << std::endl;
+            }
+        }
+        // does any bond cross another?
+        for(int x = 0; x < this->X - 1; x++) {
+            for(int y = 0; y < this->Y - 1; y++) {
+                if( hasBond( x, y, x+1, y+1) && hasBond(x+1,y,x,y+1) ) {
+                    std::cout << "Found crossed bonds!" << std::endl;
+                }
+            }
+        }
+    }
+
     // find chemical reactions
     //doChemistry();
 }
@@ -303,6 +321,20 @@ bool Arena::hasBond( size_t a, size_t b ) const {
     for( const size_t& iAtom : this->atoms[ a ].bonds ) {
         if( iAtom == b )
             return true;
+    }
+    return false;
+}
+
+//----------------------------------------------------------------------------
+
+bool Arena::hasBond( int x1, int y1, int x2, int y2 ) const {
+    for( const size_t& iAtom : this->grid[x1][y1] ) {
+        const Atom& atom = this->atoms[iAtom];
+        for( const size_t iOtherAtom : atom.bonds ) {
+            const Atom& otherAtom = this->atoms[iOtherAtom];
+            if( otherAtom.x == x2 && otherAtom.y == y2 )
+                return true;
+        }
     }
     return false;
 }
