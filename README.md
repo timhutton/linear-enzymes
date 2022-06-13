@@ -10,3 +10,7 @@ Compare with [https://github.com/timhutton/squirm3](https://github.com/timhutton
 [Another demo](https://timhutton.github.io/linear-enzymes/compaction_demo/) shows how allowing multiple atoms to occupy a square under some circumstances can reduce the computation needed and allow more flexibility:
 
 <a href="https://timhutton.github.io/linear-enzymes/compaction_demo/"><img width="600px" src="https://user-images.githubusercontent.com/647092/173341688-00ae35e4-a484-417e-9740-dda21eb5ce2b.png"></a>
+
+[Another demo](https://timhutton.github.io/linear-enzymes/MPEG_physics/) shows a different way of moving atoms around. Instead of considering each atom separately we move an entire square region at once:
+
+<a href="https://timhutton.github.io/linear-enzymes/MPEG_physics/"><img width="400px" src="https://user-images.githubusercontent.com/647092/173348301-35843dcb-2d07-4feb-aef0-e252b1afd091.gif">/a>
