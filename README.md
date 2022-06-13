@@ -7,4 +7,7 @@ Artificial chemistry where chains of atoms can catalyse reactions. Unpublished.
 
 Compare with [https://github.com/timhutton/squirm3](https://github.com/timhutton/squirm3) where the reactions just happen magically - they are hard-coded into the simulation. Here the enzymes are made of the same stuff as the rest of the world and can be assembled and manipulated in the same way.
 
-[Compaction demo](https://timhutton.github.io/linear-enzymes/compaction_demo/) shows how allowing multiple atoms to occupy a square under some circumstances can reduce the computation needed and allow more flexibility.
+[Compaction demo](https://timhutton.github.io/linear-enzymes/compaction_demo/) shows how allowing multiple atoms to occupy a square under some circumstances can reduce the computation needed and allow more flexibility:
+
+<a href="https://timhutton.github.io/linear-enzymes/compaction_demo/"><img src="https://user-images.githubusercontent.com/647092/173341688-00ae35e4-a484-417e-9740-dda21eb5ce2b.png"></a>
+
