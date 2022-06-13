@@ -204,7 +204,7 @@ size_t Arena::getNumExitBonds( int x, int y) {
     size_t num_exit_bonds = 0;
     for( const size_t iAtom : this->grid[x][y] ) {
         for( const size_t iOtherAtom : this->atoms[ iAtom ].bonds ) {
-            const Atom& otherAtom = this->atoms[iAtom];
+            const Atom& otherAtom = this->atoms[iOtherAtom];
             if( otherAtom.x != x || otherAtom.y != y )
                 num_exit_bonds++;
         }
