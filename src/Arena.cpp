@@ -223,6 +223,9 @@ void Arena::moveAtomsAlongBonds( int x, int y ) {
     Atom& atom = this->atoms[iAtom];
     if( atom.bonds.empty() )
         return;
+    // don't move if atom has more than two
+    if( atom.bonds.size() > 2 )
+        return;
     // pick a bonded atom at random to move to
     const size_t iBond = getRandIntInclusive(0, atom.bonds.size()-1 );
     const size_t iBondedAtom = atom.bonds[iBond];
