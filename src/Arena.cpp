@@ -267,10 +267,11 @@ void Arena::moveAtomsOutOfSlot( int x, int y, int tx, int ty ) {
         return;
     // would this move stretch any bond too far?
     // does this atom have any exit bonds?
+    // would it leave the atom with any diagonal bonds? (can cause crossing and a cascade of topological changes)
     bool exit_bond_found = false;
     for( const size_t& iBondedAtom : atom.bonds ) {
         const Atom& bonded_atom = this->atoms[ iBondedAtom ];
-        if( !isWithinNeighborhood( this->bond_neighborhood, tx, ty, bonded_atom.x, bonded_atom.y ) ) {
+        if( !isWithinNeighborhood( Neighborhood::vonNeumann, tx, ty, bonded_atom.x, bonded_atom.y ) ) {
             return;
         }
         if( bonded_atom.x != x || bonded_atom.y != y )
