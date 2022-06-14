@@ -124,23 +124,26 @@ void Arena::update() {
         getRandomMove( this->movement_neighborhood, dx, dy );
         moveSlotToEmptySquareIfPossible( x, y, x + dx, y + dy );
     }
-    // attempt to move some atoms to a slot they are bonded with (allows compaction)
-    for(int i = 0; i < this->X * this->Y; i++) {
-        int x = getRandIntInclusive( 0, this->X-1 );
-        int y = getRandIntInclusive( 0, this->Y-1 );
-        if( this->grid[x][y].empty() )
-            continue;
-        moveAtomsAlongBonds( x, y );
-    }
-    // attempt to move some atoms with exit bonds into empty slots (occasional expansion)
-    for(int i = 0; i < this->X * this->Y; i++) {
-        int x = getRandIntInclusive( 0, this->X-1 );
-        int y = getRandIntInclusive( 0, this->Y-1 );
-        if( this->grid[x][y].empty() )
-            continue;
-        int dx, dy;
-        getRandomMove( Neighborhood::vonNeumann, dx, dy );
-        moveAtomsOutOfSlot( x, y, x + dx, y + dy );
+    const bool allow_compaction = true;
+    if( allow_compaction ) {
+        // attempt to move some atoms to a slot they are bonded with (allows compaction)
+        for(int i = 0; i < this->X * this->Y; i++) {
+            int x = getRandIntInclusive( 0, this->X-1 );
+            int y = getRandIntInclusive( 0, this->Y-1 );
+            if( this->grid[x][y].empty() )
+                continue;
+            moveAtomsAlongBonds( x, y );
+        }
+        // attempt to move some atoms with exit bonds into empty slots (occasional expansion)
+        for(int i = 0; i < this->X * this->Y; i++) {
+            int x = getRandIntInclusive( 0, this->X-1 );
+            int y = getRandIntInclusive( 0, this->Y-1 );
+            if( this->grid[x][y].empty() )
+                continue;
+            int dx, dy;
+            getRandomMove( Neighborhood::vonNeumann, dx, dy );
+            moveAtomsOutOfSlot( x, y, x + dx, y + dy );
+        }
     }
 
     // DEBUG: check certain conditions
@@ -163,31 +166,6 @@ void Arena::update() {
 
     // find chemical reactions
     //doChemistry();
-}
-
-//----------------------------------------------------------------------------
-
-void Arena::doChemistry() {
-    detectEnzymes();
-    for( int x = 0; x < this->X; ++x ) {
-        for( int y = 0; y < this->Y; ++y ) {
-            if( this->grid[x][y].empty() ) continue;
-            int dx, dy;
-            getRandomMove( this->chemical_neighborhood, dx, dy );
-            int tx = x + dx;
-            int ty = y + dy;
-            if( isOffGrid( tx, ty ) || this->grid[tx][ty].empty() ) continue;
-            /* TODO:
-            size_t iAtomA = this->grid[x][y].iAtom;
-            size_t iAtomB = this->grid[tx][ty].iAtom;
-            Atom& a = this->atoms[ iAtomA ];
-            Atom& b = this->atoms[ iAtomB ];
-            if( !hasBond( iAtomA, iAtomB ) && a.type == b.type && a.bonds.size() + b.bonds.size() < 2 ) {
-                Neighborhood bond_range = Neighborhood::Moore;
-                makeBond( iAtomA, iAtomB, bond_range );
-            }*/
-        }
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -341,26 +319,26 @@ bool Arena::hasBond( int x1, int y1, int x2, int y2 ) const {
 
 //----------------------------------------------------------------------------
 
-void Arena::detectEnzymes() {
+void Arena::doChemistry() {
 
     const int num_vN = 5;
     const int vNx[ num_vN ] = { 0,  0,  1,  0, -1 }; // CNESW
     const int vNy[ num_vN ] = { 0, -1,  0,  1,  0 };
 
     Reaction r;
-    int rr = 50;
+    int rr = 5; // reaction radius
     for( size_t iAtom = 0; iAtom < this->atoms.size(); ++iAtom ) {
         if( isEnzyme( iAtom, r ) ) {
-            // catalyse this reaction locally for a while
+            // catalyse this reaction locally
             int ax = this->atoms[ iAtom ].x;
             int ay = this->atoms[ iAtom ].y;
             for( int x = ax - rr; x <= ax + rr; ++x ) {
                 for( int y = ay - rr; y <= ay + rr; ++y ) {
+                    if( isOffGrid(x,y) || this->grid[x][y].empty() ) continue;
                     for( int dir = 0; dir < num_vN; ++dir ) {
                         int ox = x + vNx[ dir ];
                         int oy = y + vNy[ dir ];
-                        if( isOffGrid(x,y) || isOffGrid(ox,oy) ) continue;
-                        if( this->grid[x][y].empty() || this->grid[ox][oy].empty() ) continue;
+                        if( isOffGrid(ox,oy) || this->grid[ox][oy].empty() ) continue;
                         for( int iiA = 0; iiA < this->grid[x][y].size(); ++iiA ) {
                             size_t iA = this->grid[x][y][iiA];
                             Atom& a = this->atoms[ iA ];
@@ -393,14 +371,12 @@ void Arena::detectEnzymes() {
 bool Arena::isEnzyme( size_t iAtom, Reaction& r ) {
     // test this atom to see if valid as the site of an enzyme:
     const Atom& atom = this->atoms[ iAtom ];
-    if( atom.state != 1 ) return false;
-    for( const auto& bond: atom.bonds ) {
-        string s;
-        s += atom.state + '0';
-        if( collectEnzymeBits( iAtom, bond, s ) ) {
-            r = Reaction( s );
-            return true;
-        }
+    if( atom.bonds.size() != 1 ) return false;
+    string s;
+    s += atom.type;
+    if( collectEnzymeBits( iAtom, atom.bonds.front(), s ) ) {
+        r = Reaction( s );
+        return true;
     }
     return false;
 }
@@ -411,7 +387,7 @@ bool Arena::collectEnzymeBits( size_t iAtom, size_t iNextAtom, string& s ) {
     // follow this bond, collecting the values in s if still a valid enzyme
     const Atom& next_atom = this->atoms[ iNextAtom ];
     if( next_atom.bonds.size() > 2 ) return false;
-    s += next_atom.state + '0';
+    s += next_atom.type;
     if( !Reaction::validSoFar( s ) )
         return false;
     if( Reaction::isValid( s ) )
@@ -421,7 +397,7 @@ bool Arena::collectEnzymeBits( size_t iAtom, size_t iNextAtom, string& s ) {
         if( iNextNextAtom != iAtom )
             return collectEnzymeBits( iNextAtom, iNextNextAtom, s );
     }
-    return false;
+    return false; // string is too short to interpret as a reaction
 }
 
 //----------------------------------------------------------------------------

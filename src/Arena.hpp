@@ -49,7 +49,6 @@ class Arena {
         void moveAtomsOutOfSlot( int x, int y, int tx, int ty );
         void doChemistry();
         int getRandomMove() const;
-        void detectEnzymes();
         bool isEnzyme( size_t iAtom, Reaction& r );
         bool collectEnzymeBits( size_t iAtom, size_t iNextAtom, std::string& s );
         size_t getNumExitBonds( int x, int y);

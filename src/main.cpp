@@ -6,6 +6,7 @@
 
 // stdlib:
 #include <cstdlib>
+#include <iostream>
 #include <string>
 
 // local:
@@ -28,14 +29,20 @@ void mainloop(void *arg)
     context *ctx = static_cast<context*>(arg);
     SDL_Renderer *renderer = ctx->renderer;
 
-    if( is_running ) {
-        const size_t iterations_per_render = 5;
-        for(size_t i = 0; i < iterations_per_render; ++i)
-        {
-            ctx->arena->update();
+    try {
+        if( is_running ) {
+            const size_t iterations_per_render = 10;
+            for(size_t i = 0; i < iterations_per_render; ++i)
+            {
+                ctx->arena->update();
+            }
+            ctx->iteration += iterations_per_render;
         }
         ctx->arena->Draw(renderer, ctx->scale);
-        ctx->iteration++;
+    } catch(const std::exception& e) {
+        std::cout << "Caught exception in main loop: " << e.what() << std::endl;
+    } catch(...) {
+        std::cout << "Caught unknown exception in main loop" << std::endl;
     }
 
     SDL_RenderPresent(renderer);
@@ -55,7 +62,13 @@ int main()
     SDL_CreateWindowAndRenderer(SIDE_X*scale, SIDE_Y*scale, 0, &window, &renderer);
 
     Arena_SDL arena(SIDE_X,SIDE_Y);
-    seed(arena);
+    try {
+        seed(arena);
+    } catch(const std::exception& e) {
+        std::cout << "Caught exception in initialization: " << e.what() << std::endl;
+    } catch(...) {
+        std::cout << "Caught unknown exception in initialization" << std::endl;
+    }
 
     context ctx;
     ctx.renderer = renderer;
@@ -95,7 +108,7 @@ void seed(Arena& arena)
         vs.push_back( Reaction( 13, true, 6, 6, true, 13 ).getString() );
         vs.push_back( Reaction( 13, true, 7, 7, true, 13 ).getString() );
         vs.push_back( Reaction( 13, true, 8, 8, true, 13 ).getString() );
-        const std::string dna = "4101011230123012312301220103201035";
+        const std::string dna = "4101011230123012312335";
         vs.push_back( dna );
         vs.push_back( Reaction( 12, true, 10, 6, true, 5 ).getString() );
         vs.push_back( Reaction( 13, true, 10, 7, true, 5 ).getString() );
@@ -123,6 +136,7 @@ void seed(Arena& arena)
             }
             x += 2;
         }
+
 
         if( 1 ) {
             // a loop around the enzymes

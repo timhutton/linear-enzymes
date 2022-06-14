@@ -28,18 +28,21 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
 
     // draw the atoms
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    for(const Atom& atom : atoms)
-    {
-        // draw the cell
-        SDL_Color color = GetColor(atom.type);
-        const int alpha = (atom.state == 0) ? 10 : 255;
-        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
-        SDL_Rect r;
-        r.x = atom.x*scale;
-        r.y = atom.y*scale;
-        r.w = scale;
-        r.h = scale;
-        SDL_RenderFillRect(renderer, &r);
+    for(int x = 0; x < this->X; x++) {
+        for(int y = 0; y < this->Y; y++) {
+            if( this->grid[x][y].empty() ) continue;
+            const Atom& atom = this->atoms[ this->grid[x][y].front() ];
+            // draw the atom
+            SDL_Color color = GetColor(atom.type);
+            const int alpha = (atom.state == 0) ? 10 : 255;
+            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
+            SDL_Rect r;
+            r.x = atom.x*scale;
+            r.y = atom.y*scale;
+            r.w = scale;
+            r.h = scale;
+            SDL_RenderFillRect(renderer, &r);
+        }
     }
 
     // draw the bonds

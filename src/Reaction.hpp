@@ -17,10 +17,9 @@ struct Reaction {
     static bool isValid( const std::string& s );
 
     std::string getString() const;
-    int a_pre,b_pre,a_post,b_post;
-    bool bonded_pre,bonded_post;
 
-    static const std::string start_marker;
-    static const std::string end_marker;
+    int a_pre, b_pre, a_post, b_post;
+    bool bonded_pre, bonded_post;
+
     static const int num_bits = 5;
 };

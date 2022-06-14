@@ -6,11 +6,9 @@
 #include <bitset>
 using namespace std;
 
-const string Reaction::start_marker = "11111";
-const string Reaction::end_marker = "1110111";
-
-Reaction::Reaction( const std::string& s2 ) {
-    string s = s2.substr( start_marker.size(), s2.length()-start_marker.size()-end_marker.size() );
+Reaction::Reaction( const std::string& s ) {
+    if( s.length() < 18 )
+        throw std::runtime_error("String too short to extract Reaction");
     // convert bit string to reaction and return true
     bonded_pre = ( s[0] == '0' );
     bonded_post = ( s[1] == '0' );
@@ -57,7 +55,7 @@ string Reaction::getString() const {
         interlaced_bits += a_post_bits_ss.str()[ num_bits - i - 1 ];
         interlaced_bits += b_post_bits_ss.str()[ num_bits - i - 1 ];
     }
-    ss << start_marker << (bonded_pre?"0":"1") << (bonded_post?"0":"1") << interlaced_bits << end_marker;
+    ss << (bonded_pre?"0":"1") << (bonded_post?"0":"1") << interlaced_bits;
     return ss.str();
 }
 
@@ -66,9 +64,7 @@ string Reaction::getString() const {
 bool Reaction::validSoFar( const string& s ) {
     const int num_specified_states = 4;
     const int max_num_bits = 5;
-    const size_t num_non_state_bits = start_marker.size() + end_marker.size() + 2;
-    if( s.length() == start_marker.size() && s.compare( start_marker ) != 0 )
-        return false;
+    const size_t num_non_state_bits = 2;
     if( s.length() > num_non_state_bits + num_specified_states * max_num_bits )
         return false;
     for( char c : s ) {
@@ -83,13 +79,11 @@ bool Reaction::validSoFar( const string& s ) {
 bool Reaction::isValid( const string& s ) {
     const int num_specified_states = 4;
     const int min_num_bits = 4;
-    const size_t num_non_state_bits = start_marker.size() + end_marker.size() + 2;
+    const size_t num_non_state_bits = 2;
     if( s.length() >= ( num_non_state_bits + num_specified_states * min_num_bits )
-        && ( s.length() - num_non_state_bits ) % num_specified_states == 0
-        && s.substr( s.length() - end_marker.size(), end_marker.size() ).compare( end_marker ) == 0 )
+        && ( s.length() - num_non_state_bits ) % num_specified_states == 0 )
             return true;
     return false;
 }
 
 //----------------------------------------------------------------------------
-
