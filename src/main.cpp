@@ -5,12 +5,14 @@
 #include <emscripten.h>
 
 // stdlib:
+#include <array>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
 // local:
 #include "Arena_SDL.hpp"
+#include "utils.hpp"
 
 struct context
 {
@@ -52,6 +54,27 @@ extern "C" void EMSCRIPTEN_KEEPALIVE toggle_start_stop() { is_running = !is_runn
 
 int main()
 {
+    if(0) {
+        // DEBUG:
+        constexpr int N = 3;
+        const int base = 5;
+        const std::array<int, N> limits = { 11, 4, 3 };
+        const std::array<int, N> values = { 0, 0, 2 };
+        std::cout << "Original values (" << values.size() << "):";
+        for(int value : values ) { std::cout << " " << value; }
+        std::cout << std::endl;
+        std::cout << "As base 5: " << MultiBaseToValue<N>(values, limits) << std::endl;
+        const std::vector<int> packed = ConvertFromMultiBase<N>(values, limits, base);
+        std::cout << "Packed values (" << packed.size() << "):";
+        for(int value : packed ) { std::cout << " " << value; }
+        std::cout << std::endl;
+        std::cout << "Packed values as base 5: " << BaseToValue(packed, base) << std::endl;
+        const std::array<int, N> unpacked = ConvertToMultiBase<N>(packed, base, limits);
+        std::cout << "Unpacked values (" << unpacked.size() << "):";
+        for(int value : unpacked ) { std::cout << " " << value; }
+        std::cout << std::endl;
+    }
+
     const int SIDE_X = 70;
     const int SIDE_Y = 70;
     const float scale = 10.0f;
@@ -91,6 +114,7 @@ int main()
 
 void seed(Arena& arena)
 {
+    /*
     // add a cell
     if( 1 ) {
         // some enzymes
@@ -185,5 +209,5 @@ void seed(Arena& arena)
             if( !arena.hasAtom( x, y ) )
                 arena.addAtom( x, y, "abcdef"[Arena::getRandIntInclusive(0, 5)], 0 );
         }
-    }
+    }*/
 }

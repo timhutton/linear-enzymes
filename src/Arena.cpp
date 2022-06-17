@@ -370,14 +370,14 @@ void Arena::doChemistry() {
 
 bool Arena::isEnzyme( size_t iAtom, Reaction& r ) {
     // test this atom to see if valid as the site of an enzyme:
-    const Atom& atom = this->atoms[ iAtom ];
+    /*const Atom& atom = this->atoms[ iAtom ];
     if( atom.bonds.size() != 1 ) return false;
     string s;
     s += atom.type;
     if( collectEnzymeBits( iAtom, atom.bonds.front(), s ) ) {
         r = Reaction( s );
         return true;
-    }
+    }*/
     return false;
 }
 
@@ -385,7 +385,7 @@ bool Arena::isEnzyme( size_t iAtom, Reaction& r ) {
 
 bool Arena::collectEnzymeBits( size_t iAtom, size_t iNextAtom, string& s ) {
     // follow this bond, collecting the values in s if still a valid enzyme
-    const Atom& next_atom = this->atoms[ iNextAtom ];
+    /*const Atom& next_atom = this->atoms[ iNextAtom ];
     if( next_atom.bonds.size() > 2 ) return false;
     s += next_atom.type;
     if( !Reaction::validSoFar( s ) )
@@ -396,7 +396,7 @@ bool Arena::collectEnzymeBits( size_t iAtom, size_t iNextAtom, string& s ) {
     for( const size_t& iNextNextAtom : next_atom.bonds ) {
         if( iNextNextAtom != iAtom )
             return collectEnzymeBits( iNextAtom, iNextNextAtom, s );
-    }
+    }*/
     return false; // string is too short to interpret as a reaction
 }
 

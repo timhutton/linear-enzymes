@@ -1,12 +1,21 @@
 // local:
 #include "Reaction.hpp"
+#include "utils.hpp"
 
 // STL:
-#include <sstream>
-#include <bitset>
 using namespace std;
 
-Reaction::Reaction( const std::string& s ) {
+std::array<int, Reaction::num_entries> Reaction::getEntries() const
+{
+    return { a_pre, b_pre, a_post, b_post, a_type-'a', b_type-'a', bonded_pre?1:0, bonded_post?1:0 };
+}
+
+std::vector<int> Reaction::getBases() const
+{
+    return ConvertFromMultiBase<Reaction::num_entries>( getEntries(), limits, base );
+}
+
+/*Reaction::Reaction( const std::string& s ) {
     if( s.length() < 18 )
         throw std::runtime_error("String too short to extract Reaction");
     // convert bit string to reaction and return true
@@ -34,11 +43,11 @@ Reaction::Reaction( const std::string& s ) {
     b = ss.str();
     sr.assign( b.rbegin(), b.rend() );
     b_post = strtol( sr.c_str(), &end, 2 );
-}
+}*/
 
 //----------------------------------------------------------------------------
 
-string Reaction::getString() const {
+/*string Reaction::getString() const {
     stringstream ss;
     stringstream a_pre_bits_ss;
     a_pre_bits_ss << bitset< num_bits >( a_pre );
@@ -57,11 +66,11 @@ string Reaction::getString() const {
     }
     ss << (bonded_pre?"0":"1") << (bonded_post?"0":"1") << interlaced_bits;
     return ss.str();
-}
+}*/
 
 //----------------------------------------------------------------------------
 
-bool Reaction::validSoFar( const string& s ) {
+/*bool Reaction::validSoFar( const string& s ) {
     const int num_specified_states = 4;
     const int max_num_bits = 5;
     const size_t num_non_state_bits = 2;
@@ -72,11 +81,11 @@ bool Reaction::validSoFar( const string& s ) {
             return false;
     }
     return true;
-}
+}*/
 
 //----------------------------------------------------------------------------
 
-bool Reaction::isValid( const string& s ) {
+/*bool Reaction::isValid( const string& s ) {
     const int num_specified_states = 4;
     const int min_num_bits = 4;
     const size_t num_non_state_bits = 2;
@@ -84,6 +93,6 @@ bool Reaction::isValid( const string& s ) {
         && ( s.length() - num_non_state_bits ) % num_specified_states == 0 )
             return true;
     return false;
-}
+}*/
 
 //----------------------------------------------------------------------------
