@@ -1,5 +1,6 @@
 // STL:
 #include <array>
+#include <string>
 #include <vector>
 
 struct Reaction {
@@ -25,6 +26,7 @@ struct Reaction {
         num_types, num_types, 2, 2 }; // must be in descending order of size
 
     std::vector<int> getBases() const;
+    std::string getAsHumanReadableString() const;
 
     int a_pre, b_pre, a_post, b_post;       // 0, 1, 2, ... num_states-1
     char a_type, b_type;                    // 'a', 'b', 'c', ... (num_types-1)+'a'

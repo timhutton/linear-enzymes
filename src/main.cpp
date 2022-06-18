@@ -75,6 +75,18 @@ int main()
         std::cout << std::endl;
     }
 
+    if(0) {
+        // DEBUG
+        const Reaction r('a',0,false,'b',0,2,true,3);
+        const std::vector<int> digits = r.getBases();
+        const Reaction r2(digits);
+        std::cout << "Before: " << r.getAsHumanReadableString() << std::endl;
+        std::cout << "Digits:";
+        for(const int digit : digits) std::cout << " " << digit;
+        std::cout << std::endl;
+        std::cout << "After: " << r2.getAsHumanReadableString() << std::endl;
+    }
+
     const int SIDE_X = 70;
     const int SIDE_Y = 70;
     const float scale = 10.0f;
