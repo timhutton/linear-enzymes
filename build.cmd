@@ -1,0 +1,1 @@
+emcc src/Arena.cpp src/Atom.cpp src/Reaction.cpp src/main.cpp src/Arena_SDL.cpp src/base_conversions.cpp src/utils.cpp -s USE_SDL=2 -O3 -s ALLOW_MEMORY_GROWTH=1 -o index.js

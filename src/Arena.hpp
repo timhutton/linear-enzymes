@@ -40,8 +40,6 @@ class Arena {
         Atom getAtom( size_t i ) const { return this->atoms[i]; }
         size_t getAtomIndex( int x, int y, size_t i ) const { return grid(x, y)[i]; }
 
-        static int getRandIntInclusive( int a, int b );
-
     protected:
 
         Array2D<std::vector<size_t>, X, Y> grid;
@@ -49,7 +47,7 @@ class Arena {
 
         static constexpr Neighborhood movement_neighborhood = Neighborhood::Moore;
         static constexpr Neighborhood bond_neighborhood = Neighborhood::Moore;
-        static constexpr size_t max_slot_capacity = 5;
+        static constexpr size_t max_slot_capacity = 10;
 
     private:
 

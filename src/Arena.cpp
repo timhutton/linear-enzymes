@@ -1,5 +1,6 @@
 // local:
 #include "Arena.hpp"
+#include "utils.hpp"
 
 // stdlib
 #include <algorithm>
@@ -273,14 +274,7 @@ void Arena::moveAtomsOutOfSlot( int x, int y, int tx, int ty ) {
     atom.y = ty;
 }
 
-//----------------------------------------------------------------------------
-
-int Arena::getRandIntInclusive( int a, int b )
-{
-    return a + rand() % ( b - a + 1 );
-}
-
-//----------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 bool Arena::hasBond( size_t a, size_t b ) const {
     for( const size_t& iAtom : atoms[ a ].bonds ) {

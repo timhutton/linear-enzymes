@@ -12,6 +12,7 @@
 
 // local:
 #include "Arena_SDL.hpp"
+#include "base_conversions.hpp"
 #include "utils.hpp"
 
 struct context
@@ -126,23 +127,24 @@ void seed(Arena& arena)
 {
     // add a cell
     if( 1 ) {
-        // some enzymes and the dna
+        // some (random) enzymes and the dna
         std::vector<Reaction::DigitsType> enzymes;
-        enzymes.push_back( Reaction( 'a', 0, false, 'b', 0, 8, true, 5 ).getBases() );
-        enzymes.push_back( Reaction( 'd', 0, false, 'c', 0, 3, true, 19 ).getBases() );
-        enzymes.push_back( Reaction( 'e', 3, true, 'c', 8, 11, true, 19 ).getBases() );
-        enzymes.push_back( Reaction( 'f', 16, true, 'd', 4, 17, false, 9 ).getBases() );
+        for(int i = 0; i < 60; i++) {
+            enzymes.push_back( Reaction( getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
+                getRandIntInclusive(0,1), getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
+                getRandIntInclusive(0,Reaction::num_states-1), getRandIntInclusive(0,1), getRandIntInclusive(0,Reaction::num_states-1) ).getBases() );
+        }
         std::vector<int> dna;
         dna.push_back(5); // start marker
         for(const Reaction::DigitsType& enzyme : enzymes) {
             dna.insert(dna.end(), enzyme.begin(), enzyme.end());
             dna.push_back(5); // separator
         }
-        // draw a snake using the dna
+        // draw the dna
         int x = 11;
-        int y = 10;
+        int y = 25;
         const int dna_min_y = y;
-        const int dna_max_y = y + 7;
+        const int dna_max_y = y + Reaction::num_digits*2;
         int dx = 0;
         int dy = 1;
         size_t dna_start, dna_end, prev;
@@ -173,23 +175,35 @@ void seed(Arena& arena)
                 y += dy;
             }
         }
+        const Atom& dna_start_atom = arena.getAtom(dna_start);
+        const Atom& dna_end_atom = arena.getAtom(dna_end);
+
+        if( 1 ) {
+            // draw the enzymes above and below (so we get half on each side)
+            for(int i = 0; i < enzymes.size(); i++ ) {
+                if( i % 2 ) { x = dna_start_atom.x + (i-1)/2; y = dna_min_y - Reaction::num_digits - 1; }
+                else { x = dna_start_atom.x + i/2; y = dna_max_y + 2; }
+                size_t prev = arena.addAtom( x, y, enzymes[i].front() + 'a', 1);
+                for(int j = 1; j < enzymes[i].size(); j++) {
+                    const size_t a = arena.addAtom( x, y + j, enzymes[i][j] + 'a', 1);
+                    arena.makeBond(a, prev);
+                    prev = a;
+                }
+            }
+        }
 
         if( 1 ) {
             // a loop around the enzymes
-            const Atom& dna_start_atom = arena.getAtom(dna_start);
-            const Atom& dna_end_atom = arena.getAtom(dna_end);
             const int min_x = dna_start_atom.x - 1;
-            const int min_y = dna_start_atom.y - 1;
+            const int min_y = dna_start_atom.y - 1 - Reaction::num_digits - 2;
             const int max_x = dna_end_atom.x + 1;
-            const int max_y = dna_max_y + 1;
+            const int max_y = dna_max_y + 1 + Reaction::num_digits + 2;
             const size_t a0 = arena.addAtom( min_x, min_y, 'a', 1 );
             size_t prev = a0;
             size_t a;
             for(int x = min_x + 1; x <= max_x; x++) {
                 a = arena.addAtom( x, min_y, 'a', 1 );
                 arena.makeBond(a, prev);
-                if( x == min_x + 1 )
-                    arena.makeBond(a, dna_start);
                 prev = a;
             }
             for(int y = min_y + 1; y <= max_y; y++) {
@@ -208,6 +222,8 @@ void seed(Arena& arena)
             for(int y = max_y - 1; y >= min_y; y--) {
                 a = arena.addAtom( min_x, y, 'a', 1 );
                 arena.makeBond(a, prev);
+                if( y == dna_start_atom.y )
+                    arena.makeBond(a, dna_start);
                 prev = a;
             }
             arena.makeBond(a, a0);
@@ -220,7 +236,7 @@ void seed(Arena& arena)
             int x = rand() % arena.getArenaWidth();
             int y = rand() % arena.getArenaHeight();
             if( !arena.hasAtom( x, y ) )
-                arena.addAtom( x, y, "abcdef"[Arena::getRandIntInclusive(0, 5)], 0 );
+                arena.addAtom( x, y, "abcdef"[getRandIntInclusive(0, 5)], 0 );
         }
     }
 }

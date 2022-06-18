@@ -1,6 +1,6 @@
 // local:
 #include "Reaction.hpp"
-#include "utils.hpp"
+#include "base_conversions.hpp"
 
 // stdlib:
 #include <sstream>
