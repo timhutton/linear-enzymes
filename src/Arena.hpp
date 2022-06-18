@@ -4,14 +4,25 @@
 #include "Reaction.hpp"
 
 // STL:
+#include <array>
 #include <vector>
+
+template<typename T, size_t X, size_t Y>
+class Array2D {
+    public:
+        T& operator()(size_t x, size_t y)             { return arr[ x * Y + y ]; }
+        const T& operator()(size_t x, size_t y) const { return arr[ x * Y + y ]; }
+    private:
+        std::array<T, X*Y> arr;
+};
 
 // Arena is a square grid world containing atoms
 class Arena {
 
     public:
 
-        Arena( int x, int y );
+        static constexpr int X = 70;
+        static constexpr int Y = 70;
 
         size_t addAtom( int x, int y, char type, int state );
         bool hasBond( size_t a, size_t b ) const;
@@ -25,21 +36,20 @@ class Arena {
         int getArenaWidth() const { return this->X; }
         int getArenaHeight() const { return this->Y; }
         size_t getNumberOfAtoms() const { return this->atoms.size(); }
+        size_t getNumberOfAtoms(int x, int y) const { return grid(x, y).size(); }
         Atom getAtom( size_t i ) const { return this->atoms[i]; }
+        size_t getAtomIndex( int x, int y, size_t i ) const { return grid(x, y)[i]; }
 
         static int getRandIntInclusive( int a, int b );
 
     protected:
 
-        // private variables
-        const int                         X;
-        const int                         Y;
-        std::vector<Atom>                 atoms;
-        std::vector<std::vector<std::vector<size_t>>>    grid;
-        const Neighborhood                movement_neighborhood;
-        const Neighborhood                chemical_neighborhood;
-        const Neighborhood                bond_neighborhood;
-        const size_t                      max_slot_capacity;
+        Array2D<std::vector<size_t>, X, Y> grid;
+        std::vector<Atom> atoms;
+
+        static constexpr Neighborhood movement_neighborhood = Neighborhood::Moore;
+        static constexpr Neighborhood bond_neighborhood = Neighborhood::Moore;
+        static constexpr size_t max_slot_capacity = 20;
 
     private:
 

@@ -2,9 +2,9 @@
 #include "Arena_SDL.hpp"
 
 // STL:
+#include <iostream>
 #include <vector>
 #include <sstream>
-using namespace std;
 
 SDL_Color GetColor(char type)
 {
@@ -26,12 +26,13 @@ void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    // draw the atoms
     SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    for(int x = 0; x < this->X; x++) {
-        for(int y = 0; y < this->Y; y++) {
-            if( this->grid[x][y].empty() ) continue;
-            const Atom& atom = this->atoms[ this->grid[x][y].front() ];
+
+    // draw the atoms
+    for(int x = 0; x < X; x++) {
+        for(int y = 0; y < Y; y++) {
+            if( grid(x, y).empty() ) continue;
+            const Atom& atom = atoms[ grid(x, y).front() ];
             // draw the atom
             SDL_Color color = GetColor(atom.type);
             const int alpha = (atom.state == 0) ? 10 : 255;

@@ -17,7 +17,7 @@
 struct context
 {
     SDL_Renderer *renderer;
-    Arena_SDL *arena;
+    Arena_SDL arena;
     int iteration;
     float scale;
 };
@@ -36,11 +36,11 @@ void mainloop(void *arg)
             const size_t iterations_per_render = 10;
             for(size_t i = 0; i < iterations_per_render; ++i)
             {
-                ctx->arena->update();
+                ctx->arena.update();
             }
             ctx->iteration += iterations_per_render;
         }
-        ctx->arena->Draw(renderer, ctx->scale);
+        ctx->arena.Draw(renderer, ctx->scale);
     } catch(const std::exception& e) {
         std::cout << "Caught exception in main loop: " << e.what() << std::endl;
     } catch(...) {
@@ -87,29 +87,25 @@ int main()
         std::cout << "After: " << r2.getAsHumanReadableString() << std::endl;
     }
 
-    const int SIDE_X = 70;
-    const int SIDE_Y = 70;
-    const float scale = 10.0f;
+    context ctx;
 
+    const float scale = 10.0f;
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window *window;
     SDL_Renderer *renderer;
-    SDL_CreateWindowAndRenderer(SIDE_X*scale, SIDE_Y*scale, 0, &window, &renderer);
+    SDL_CreateWindowAndRenderer(ctx.arena.X*scale, ctx.arena.Y*scale, 0, &window, &renderer);
 
-    Arena_SDL arena(SIDE_X,SIDE_Y);
     try {
         std::cout << "Initializing..." << std::endl;
-        seed(arena);
+        seed(ctx.arena);
     } catch(const std::exception& e) {
         std::cout << "Caught exception in initialization: " << e.what() << std::endl;
     } catch(...) {
         std::cout << "Caught unknown exception in initialization" << std::endl;
     }
 
-    context ctx;
     ctx.renderer = renderer;
     ctx.iteration = 0;
-    ctx.arena = &arena;
     ctx.scale = scale;
 
     std::cout << "Running..." << std::endl;
