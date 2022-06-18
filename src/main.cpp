@@ -22,7 +22,7 @@ struct context
     float scale;
 };
 
-bool is_running = true;
+bool is_running = false;
 
 void seed(Arena& arena);
 
@@ -75,10 +75,10 @@ int main()
         std::cout << std::endl;
     }
 
-    if(1) {
+    if(0) {
         // DEBUG
         const Reaction r('d',7,false,'b',0,2,true,8);
-        const std::array<int, Reaction::num_digits> digits = r.getBases();
+        const Reaction::DigitsType digits = r.getBases();
         const Reaction r2(digits);
         std::cout << "Before: " << r.getAsHumanReadableString() << std::endl;
         std::cout << "Digits (" << digits.size() << "):";
@@ -98,6 +98,7 @@ int main()
 
     Arena_SDL arena(SIDE_X,SIDE_Y);
     try {
+        std::cout << "Initializing..." << std::endl;
         seed(arena);
     } catch(const std::exception& e) {
         std::cout << "Caught exception in initialization: " << e.what() << std::endl;
@@ -111,6 +112,7 @@ int main()
     ctx.arena = &arena;
     ctx.scale = scale;
 
+    std::cout << "Running..." << std::endl;
     const int simulate_infinite_loop = 1; // call the function repeatedly
     const int fps = -1; // call the function as fast as the browser wants to render (typically 60fps)
     emscripten_set_main_loop_arg(mainloop, &ctx, fps, simulate_infinite_loop);
@@ -126,86 +128,88 @@ int main()
 
 void seed(Arena& arena)
 {
-    /*
     // add a cell
     if( 1 ) {
-        // some enzymes
-        std::vector<std::string> vs;
-        vs.push_back( Reaction( 3, false, 4, 8, true, 5 ).getString() );
-        vs.push_back( Reaction( 5, false, 4, 11, true, 10 ).getString() );
-        vs.push_back( Reaction( 11, true, 6, 6, true, 11 ).getString() );
-        vs.push_back( Reaction( 11, true, 7, 7, true, 11 ).getString() );
-        vs.push_back( Reaction( 11, true, 8, 8, true, 11 ).getString() );
-        vs.push_back( Reaction( 0, true, 11, 6, true, 12 ).getString() );
-        vs.push_back( Reaction( 1, true, 11, 7, true, 13 ).getString() );
-        vs.push_back( Reaction( 12, true, 6, 6, true, 12 ).getString() );
-        vs.push_back( Reaction( 12, true, 7, 7, true, 12 ).getString() );
-        vs.push_back( Reaction( 12, true, 8, 8, true, 12 ).getString() );
-        vs.push_back( Reaction( 13, true, 6, 6, true, 13 ).getString() );
-        vs.push_back( Reaction( 13, true, 7, 7, true, 13 ).getString() );
-        vs.push_back( Reaction( 13, true, 8, 8, true, 13 ).getString() );
-        const std::string dna = "4101011230123012312335";
-        vs.push_back( dna );
-        vs.push_back( Reaction( 12, true, 10, 6, true, 5 ).getString() );
-        vs.push_back( Reaction( 13, true, 10, 7, true, 5 ).getString() );
-        vs.push_back( Reaction( 2, true, 11, 2, true, 14 ).getString() );
-        vs.push_back( Reaction( 14, true, 6, 0, true, 14 ).getString() );
-        vs.push_back( Reaction( 14, true, 7, 1, true, 14 ).getString() );
-        vs.push_back( Reaction( 14, true, 8, 3, false, 15 ).getString() );
-        vs.push_back( Reaction( 15, false, 4, 14, true, 3 ).getString() );
-        vs.push_back( Reaction( 14, true, 10, 2, false, 9 ).getString() );
-        int x = 11;
-        size_t e, f;
-        for( const std::string& s : vs ) {
-            const int N = s.length();
-            int y = 10;
-            size_t a = arena.addAtom( x, y, s[0] - '0' + 'a', 1 );
-            if( s == dna )
-                e = a;
-            for( int i = 1; i < N; ++i ) {
-                y++;
-                size_t a2 = arena.addAtom( x, y, s[i] - '0' + 'a', 1 );
-                if( s == dna && i==N-1 )
-                    f = a2;
-                arena.makeBond( a, a2 );
-                a = a2;
-            }
-            x += 2;
+        // some enzymes and the dna
+        std::vector<Reaction::DigitsType> enzymes;
+        enzymes.push_back( Reaction( 'a', 0, false, 'b', 0, 8, true, 5 ).getBases() );
+        enzymes.push_back( Reaction( 'd', 0, false, 'c', 0, 3, true, 19 ).getBases() );
+        enzymes.push_back( Reaction( 'e', 3, true, 'c', 8, 11, true, 19 ).getBases() );
+        enzymes.push_back( Reaction( 'f', 16, true, 'd', 4, 17, false, 9 ).getBases() );
+        std::vector<int> dna;
+        dna.push_back(5); // start marker
+        for(const Reaction::DigitsType& enzyme : enzymes) {
+            dna.insert(dna.end(), enzyme.begin(), enzyme.end());
+            dna.push_back(5); // separator
         }
-
+        // draw a snake using the dna
+        int x = 11;
+        int y = 10;
+        const int dna_min_y = y;
+        const int dna_max_y = y + 7;
+        int dx = 0;
+        int dy = 1;
+        size_t dna_start, dna_end, prev;
+        for(int i = 0; i < dna.size(); i++) {
+            const size_t a = arena.addAtom( x, y, dna[i] + 'a', 1 );
+            if( i == 0 ) {
+                dna_start = a;
+            }
+            else {
+                arena.makeBond(a, prev);
+            }
+            if( i == dna.size() -1 ) {
+                dna_end = a;
+            }
+            prev = a;
+            if(dy > 0 && y == dna_max_y ) {
+                // reached bottom, start upwards
+                x++;
+                dy = -1;
+            }
+            else if(dy < 0 && y == dna_min_y ) {
+                // reached top, start downwards
+                x++;
+                dy = 1;
+            }
+            else {
+                x += dx;
+                y += dy;
+            }
+        }
 
         if( 1 ) {
             // a loop around the enzymes
-            int x = 9;
-            int y = 9;
-            const size_t a0 = arena.addAtom( x, y, 'a', 1 );
+            const Atom& dna_start_atom = arena.getAtom(dna_start);
+            const Atom& dna_end_atom = arena.getAtom(dna_end);
+            const int min_x = dna_start_atom.x - 1;
+            const int min_y = dna_start_atom.y - 1;
+            const int max_x = dna_end_atom.x + 1;
+            const int max_y = dna_max_y + 1;
+            const size_t a0 = arena.addAtom( min_x, min_y, 'a', 1 );
+            arena.makeBond(a0, dna_start);
             size_t prev = a0;
             size_t a;
-            for(int i = 0; i < vs.size()*2 + 2; i++) {
-                x++;
-                a = arena.addAtom( x, y, 'a', 1 );
-                arena.makeBond(a, prev);
-                if( i == 27 )
-                    arena.makeBond(a, e);
-                prev = a;
-            }
-            for(int i = 0; i < vs.front().size() + 1; i++) {
-                y++;
-                a = arena.addAtom( x, y, 'a', 1 );
+            for(int x = min_x + 1; x <= max_x; x++) {
+                a = arena.addAtom( x, min_y, 'a', 1 );
                 arena.makeBond(a, prev);
                 prev = a;
             }
-            for(int i = 0; i < vs.size()*2 + 2; i++) {
-                x--;
-                a = arena.addAtom( x, y, 'a', 1 );
+            for(int y = min_y + 1; y <= max_y; y++) {
+                a = arena.addAtom( max_x, y, 'a', 1 );
                 arena.makeBond(a, prev);
-                if( i == 17 )
-                    arena.makeBond(a, f);
+                if( y == dna_end_atom.y ) {
+                    arena.makeBond( a, dna_end );
+                }
                 prev = a;
             }
-            for(int i = 0; i < vs.front().size(); i++) {
-                y--;
-                a = arena.addAtom( x, y, 'a', 1 );
+            for(int x = max_x - 1; x >= min_x; x--) {
+                a = arena.addAtom( x, max_y, 'a', 1 );
+                arena.makeBond(a, prev);
+                prev = a;
+            }
+            for(int y = max_y - 1; y >= min_y; y--) {
+                a = arena.addAtom( min_x, y, 'a', 1 );
                 arena.makeBond(a, prev);
                 prev = a;
             }
@@ -221,5 +225,5 @@ void seed(Arena& arena)
             if( !arena.hasAtom( x, y ) )
                 arena.addAtom( x, y, "abcdef"[Arena::getRandIntInclusive(0, 5)], 0 );
         }
-    }*/
+    }
 }

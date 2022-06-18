@@ -22,7 +22,7 @@ Reaction::Reaction( char a_type, int a_pre, bool bonded_pre, char b_type, int b_
 
 }
 
-Reaction::Reaction( const std::array<int, Reaction::num_digits>& digits ) {
+Reaction::Reaction( const Reaction::DigitsType& digits ) {
     const std::array<int, num_entries> entries = ConvertToMultiBase<num_entries, num_digits>( digits, base, limits );
     a_pre = entries[0];
     b_pre = entries[1];
@@ -39,7 +39,7 @@ std::array<int, Reaction::num_entries> Reaction::getEntries() const
     return { a_pre, b_pre, a_post, b_post, a_type-'a', b_type-'a', bonded_pre?1:0, bonded_post?1:0 };
 }
 
-std::array<int, Reaction::num_digits> Reaction::getBases() const
+Reaction::DigitsType Reaction::getBases() const
 {
     return ConvertFromMultiBase<num_entries, num_digits>( getEntries(), limits, base );
 }
