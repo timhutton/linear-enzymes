@@ -49,7 +49,7 @@ class Arena {
 
         static constexpr Neighborhood movement_neighborhood = Neighborhood::Moore;
         static constexpr Neighborhood bond_neighborhood = Neighborhood::Moore;
-        static constexpr size_t max_slot_capacity = 20;
+        static constexpr size_t max_slot_capacity = 5;
 
     private:
 

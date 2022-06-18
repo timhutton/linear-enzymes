@@ -183,12 +183,13 @@ void seed(Arena& arena)
             const int max_x = dna_end_atom.x + 1;
             const int max_y = dna_max_y + 1;
             const size_t a0 = arena.addAtom( min_x, min_y, 'a', 1 );
-            arena.makeBond(a0, dna_start);
             size_t prev = a0;
             size_t a;
             for(int x = min_x + 1; x <= max_x; x++) {
                 a = arena.addAtom( x, min_y, 'a', 1 );
                 arena.makeBond(a, prev);
+                if( x == min_x + 1 )
+                    arena.makeBond(a, dna_start);
                 prev = a;
             }
             for(int y = min_y + 1; y <= max_y; y++) {

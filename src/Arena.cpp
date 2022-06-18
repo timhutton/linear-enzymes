@@ -51,7 +51,7 @@ void Arena::makeBond( size_t a, size_t b ) {
         throw out_of_range("Invalid atom index");
     if( a == b )
         throw invalid_argument("Cannot bond atom to itself");
-    if( !isWithinNeighborhood( bond_neighborhood, atoms[a].x, atoms[a].y, atoms[b].x, atoms[b].y ) )
+    if( !isWithinNeighborhood( Neighborhood::vonNeumann, atoms[a].x, atoms[a].y, atoms[b].x, atoms[b].y ) )
         throw invalid_argument("Atoms are too far apart to be bonded");
     if( hasBond( a, b ) )
         throw invalid_argument("Atoms are already bonded");
