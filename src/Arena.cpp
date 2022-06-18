@@ -320,7 +320,7 @@ bool Arena::hasBond( int x1, int y1, int x2, int y2 ) const {
 //----------------------------------------------------------------------------
 
 void Arena::doChemistry() {
-
+/*
     const int num_vN = 5;
     const int vNx[ num_vN ] = { 0,  0,  1,  0, -1 }; // CNESW
     const int vNy[ num_vN ] = { 0, -1,  0,  1,  0 };
@@ -363,7 +363,7 @@ void Arena::doChemistry() {
                 }
             }
         }
-    }
+    }*/
 }
 
 //----------------------------------------------------------------------------

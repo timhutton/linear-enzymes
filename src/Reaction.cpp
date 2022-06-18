@@ -5,8 +5,25 @@
 // stdlib:
 #include <sstream>
 
-Reaction::Reaction( const std::vector<int>& digits ) {
-    const std::array<int, num_entries> entries = ConvertToMultiBase<num_entries>( digits, base, limits );
+const std::array<int, Reaction::num_entries> Reaction::limits = {
+    Reaction::num_states, Reaction::num_states, Reaction::num_states, Reaction::num_states,
+    Reaction::num_types, Reaction::num_types, 2, 2 }; // must be in descending order of size
+
+Reaction::Reaction( char a_type, int a_pre, bool bonded_pre, char b_type, int b_pre, int a_post, bool bonded_post, int b_post )
+    : a_type( a_type)
+    , a_pre( a_pre )
+    , bonded_pre( bonded_pre )
+    , b_type( b_type )
+    , b_pre( b_pre )
+    , a_post( a_post )
+    , bonded_post( bonded_post )
+    , b_post( b_post )
+{
+
+}
+
+Reaction::Reaction( const std::array<int, Reaction::num_digits>& digits ) {
+    const std::array<int, num_entries> entries = ConvertToMultiBase<num_entries, num_digits>( digits, base, limits );
     a_pre = entries[0];
     b_pre = entries[1];
     a_post = entries[2];
@@ -22,9 +39,9 @@ std::array<int, Reaction::num_entries> Reaction::getEntries() const
     return { a_pre, b_pre, a_post, b_post, a_type-'a', b_type-'a', bonded_pre?1:0, bonded_post?1:0 };
 }
 
-std::vector<int> Reaction::getBases() const
+std::array<int, Reaction::num_digits> Reaction::getBases() const
 {
-    return ConvertFromMultiBase<num_entries>( getEntries(), limits, base );
+    return ConvertFromMultiBase<num_entries, num_digits>( getEntries(), limits, base );
 }
 
 std::string Reaction::getAsHumanReadableString() const

@@ -1,31 +1,19 @@
 // STL:
 #include <array>
 #include <string>
-#include <vector>
 
 struct Reaction {
-    Reaction() {}
-    Reaction( char a_type, int a_pre, bool bonded_pre, char b_type, int b_pre, int a_post, bool bonded_post, int b_post )
-        : a_type( a_type)
-        , a_pre( a_pre )
-        , bonded_pre( bonded_pre )
-        , b_type( b_type )
-        , b_pre( b_pre )
-        , a_post( a_post )
-        , bonded_post( bonded_post )
-        , b_post( b_post )
-        {}
-    Reaction( const std::vector<int>& digits );
-
     static constexpr int num_types = 6;
     static constexpr int num_states = 20;
     static constexpr int base = 5;
     static constexpr int num_entries = 8;
-    static constexpr std::array<int, num_entries> limits = {
-        num_states, num_states, num_states, num_states,
-        num_types, num_types, 2, 2 }; // must be in descending order of size
+    static const std::array<int, num_entries> limits;
+    static constexpr int num_digits = 12; // compute from highest values (TODO: automate)
 
-    std::vector<int> getBases() const;
+    Reaction(char a_type, int a_pre, bool bonded_pre, char b_type, int b_pre, int a_post, bool bonded_post, int b_post);
+    Reaction(const std::array<int, num_digits>& digits);
+
+    std::array<int, num_digits> getBases() const;
     std::string getAsHumanReadableString() const;
 
     int a_pre, b_pre, a_post, b_post;       // 0, 1, 2, ... num_states-1

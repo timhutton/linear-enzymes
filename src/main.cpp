@@ -75,13 +75,13 @@ int main()
         std::cout << std::endl;
     }
 
-    if(0) {
+    if(1) {
         // DEBUG
-        const Reaction r('a',0,false,'b',0,2,true,3);
-        const std::vector<int> digits = r.getBases();
+        const Reaction r('d',7,false,'b',0,2,true,8);
+        const std::array<int, Reaction::num_digits> digits = r.getBases();
         const Reaction r2(digits);
         std::cout << "Before: " << r.getAsHumanReadableString() << std::endl;
-        std::cout << "Digits:";
+        std::cout << "Digits (" << digits.size() << "):";
         for(const int digit : digits) std::cout << " " << digit;
         std::cout << std::endl;
         std::cout << "After: " << r2.getAsHumanReadableString() << std::endl;
