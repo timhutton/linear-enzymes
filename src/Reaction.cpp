@@ -2,8 +2,17 @@
 #include "Reaction.hpp"
 #include "utils.hpp"
 
-// STL:
-using namespace std;
+Reaction::Reaction( const std::vector<int>& digits ) {
+    const std::array<int, num_entries> entries = ConvertToMultiBase<num_entries>( digits, base, limits );
+    a_pre = entries[0];
+    b_pre = entries[1];
+    a_post = entries[2];
+    b_post = entries[3];
+    a_type = entries[4] + 'a';
+    b_type = entries[5] + 'a';
+    bonded_pre = entries[6];
+    bonded_post = entries[7];
+}
 
 std::array<int, Reaction::num_entries> Reaction::getEntries() const
 {
@@ -12,7 +21,7 @@ std::array<int, Reaction::num_entries> Reaction::getEntries() const
 
 std::vector<int> Reaction::getBases() const
 {
-    return ConvertFromMultiBase<Reaction::num_entries>( getEntries(), limits, base );
+    return ConvertFromMultiBase<num_entries>( getEntries(), limits, base );
 }
 
 /*Reaction::Reaction( const std::string& s ) {

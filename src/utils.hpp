@@ -13,7 +13,7 @@ LongType BaseToValue(const std::vector<int>& digits, const int base);
 std::vector<int> ValueToBase(LongType value, const int base);
 
 // Converts a number (given as a list of digits where each digits is in a separate base) to a single value
-// (bases must be sorted in descending order of size, else the result isn't unique)
+// (input bases must be sorted in descending order of size, else the result isn't unique)
 template<int N>
 LongType MultiBaseToValue(const std::array<int, N>& digits, const std::array<int, N>& input_bases)
 {
@@ -22,11 +22,10 @@ LongType MultiBaseToValue(const std::array<int, N>& digits, const std::array<int
         value = ( value * input_bases[i-1] ) + digits[i]; // (assumes doesn't overflow)
     }
     return value;
-
 }
 
 // Converts a value to a number (given as a list of digits where each digits is in a separate base)
-// (bases must be sorted in descending order of size, else the result isn't unique)
+// (output bases must be sorted in descending order of size, else the result isn't unique)
 template<int N>
 std::array<int, N> ValueToMultiBase(LongType value, const std::array<int, N>& output_bases)
 {
@@ -41,7 +40,7 @@ std::array<int, N> ValueToMultiBase(LongType value, const std::array<int, N>& ou
 }
 
 // Converts a number (given as a list of digits where each digits is in a separate base) to a number in a different base
-// (bases must be sorted in descending order of size, else the result isn't unique)
+// (input bases must be sorted in descending order of size, else the result isn't unique)
 template<int N>
 std::vector<int> ConvertFromMultiBase(const std::array<int, N>& digits, const std::array<int, N>& input_bases, const int output_base)
 {
@@ -49,7 +48,7 @@ std::vector<int> ConvertFromMultiBase(const std::array<int, N>& digits, const st
 }
 
 // Converts a number (given as a list of digits in one base) to a number (given as a list of digits where each digits is in a separate base)
-// (bases must be sorted in descending order of size, else the result isn't unique)
+// (output bases must be sorted in descending order of size, else the result isn't unique)
 template<int N>
 std::array<int, N> ConvertToMultiBase(const std::vector<int>& digits, const int input_base, const std::array<int, N>& output_bases)
 {

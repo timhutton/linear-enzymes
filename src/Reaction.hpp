@@ -14,7 +14,7 @@ struct Reaction {
         , bonded_post( bonded_post )
         , b_post( b_post )
         {}
-    //Reaction( const std::string& s );
+    Reaction( const std::vector<int>& digits );
 
     static constexpr int num_types = 6;
     static constexpr int num_states = 20;
