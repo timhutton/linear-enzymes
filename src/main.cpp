@@ -23,7 +23,7 @@ struct context
     float scale;
 };
 
-bool is_running = false;
+bool is_running = true;
 
 void seed(Arena& arena);
 
@@ -101,12 +101,11 @@ void seed(Arena& arena)
 
     // add a cell
     if( 1 ) {
-        std::cout << "Drawing DNA..." << std::endl;
         // some (random) enzymes and the dna
         size_t max_num_digits = 0;
         std::vector<Reaction::DigitsType> enzymes;
-        const Reaction r( 'c', 0, false, 'b', 0, 2, true, 3 );
-        enzymes.push_back( r.getBases() );
+        enzymes.push_back( Reaction( 'a', 1, false, 'i', 0, 2, true, 3 ).getBases() );
+        enzymes.push_back( Reaction( 'i', 3, false, 'i', 0, 2, true, 3 ).getBases() );
         for(int i = 0; i < 30; i++) {
             const Reaction r( getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
                 getRandIntInclusive(0,1), getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
@@ -119,6 +118,10 @@ void seed(Arena& arena)
             }
         }
         std::cout << "Max num digits = " << max_num_digits << std::endl;
+        if( max_num_digits > Reaction::num_digits ) {
+            std::cout << "Should Reaction::limits be " << max_num_digits << "?" << std::endl;
+            throw std::runtime_error("Reaction::limits mismatch");
+        }
         std::vector<int> dna;
         dna.push_back(Reaction::base); // start marker
         for(const Reaction::DigitsType& enzyme : enzymes) {
@@ -164,7 +167,6 @@ void seed(Arena& arena)
         const Atom& dna_end_atom = arena.getAtom(dna_end);
 
         if( 1 ) {
-            std::cout << "Drawing enzymes..." << std::endl;
             // draw the enzymes above and below (so we get half on each side)
             for(int i = 0; i < enzymes.size(); i++ ) {
                 if( i % 2 ) { x = dna_start_atom.x + (i-1)/2; y = dna_min_y - Reaction::num_digits - 1; }
@@ -179,7 +181,6 @@ void seed(Arena& arena)
         }
 
         if( 1 ) {
-            std::cout << "Drawing membrane..." << std::endl;
             // a loop around the enzymes
             const int min_x = dna_start_atom.x - 1;
             const int min_y = dna_start_atom.y - 1 - Reaction::num_digits - 2;
@@ -218,13 +219,12 @@ void seed(Arena& arena)
     }
 
     if( 1 ) {
-        std::cout << "Drawing soup..." << std::endl;
         // add some surrounding atoms
-        for( int i = 0; i < arena.X * arena.Y / 10; ++i ) {
+        for( int i = 0; i < arena.X * arena.Y / 2; ++i ) {
             int x = rand() % arena.getArenaWidth();
             int y = rand() % arena.getArenaHeight();
             if( !arena.hasAtom( x, y ) )
-                arena.addAtom( x, y, getRandIntInclusive(0,Reaction::num_types-1)+'a', 0 );
+                arena.addAtom( x, y, getRandIntInclusive(0, Reaction::num_types-1) + 'a', 0 );
         }
     }
 }
