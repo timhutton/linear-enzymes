@@ -153,7 +153,7 @@ void Arena::update() {
     }
 
     // find chemical reactions
-    //doChemistry();
+    doChemistry();
 }
 
 //----------------------------------------------------------------------------
@@ -301,83 +301,92 @@ bool Arena::hasBond( int x1, int y1, int x2, int y2 ) const {
 //----------------------------------------------------------------------------
 
 void Arena::doChemistry() {
-/*
-    const int num_vN = 5;
-    const int vNx[ num_vN ] = { 0,  0,  1,  0, -1 }; // CNESW
-    const int vNy[ num_vN ] = { 0, -1,  0,  1,  0 };
-
-    Reaction r;
-    int rr = 5; // reaction radius
+    Reaction::DigitsType digits;
     for( size_t iAtom = 0; iAtom < atoms.size(); ++iAtom ) {
-        if( isEnzyme( iAtom, r ) ) {
-            // catalyse this reaction locally
-            int ax = atoms[ iAtom ].x;
-            int ay = atoms[ iAtom ].y;
-            for( int x = ax - rr; x <= ax + rr; ++x ) {
-                for( int y = ay - rr; y <= ay + rr; ++y ) {
-                    if( isOffGrid(x,y) || grid(x, y).empty() ) continue;
-                    for( int dir = 0; dir < num_vN; ++dir ) {
-                        int ox = x + vNx[ dir ];
-                        int oy = y + vNy[ dir ];
-                        if( isOffGrid(ox,oy) || grid[ox][oy].empty() ) continue;
-                        for( int iiA = 0; iiA < grid(x, y).size(); ++iiA ) {
-                            size_t iA = grid(x, y)[iiA];
-                            Atom& a = atoms[ iA ];
-                            for( int iiB = 0; iiB < grid[ox][oy].size(); ++iiB ) {
-                                size_t iB = grid[ox][oy][iiB];
-                                if( iB == iA ) continue;
-                                Atom& b = atoms[ iB ];
-                                // check the reaction matches the reactants
-                                if( a.state != r.a_pre || b.state != r.b_pre ) continue;
-                                bool bonded = a.hasBondWith( iB );
-                                if( bonded != r.bonded_pre ) continue;
-                                // apply the reaction
-                                a.state = r.a_post;
-                                b.state = r.b_post;
-                                if( !bonded && r.bonded_post )
-                                    makeBond( iA, iB );
-                                else if( bonded && !r.bonded_post )
-                                    breakBond( iA, iB );
-                            }
-                        }
-                    }
-                }
-            }
+        if( isEnzyme( iAtom, digits ) ) {
+            const Atom& atom = atoms[iAtom];
+            const Reaction r(digits);
+            catalyzeReactionLocally( atom.x, atom.y, r);
         }
-    }*/
+    }
 }
 
 //----------------------------------------------------------------------------
 
-bool Arena::isEnzyme( size_t iAtom, Reaction& r ) {
-    // test this atom to see if valid as the site of an enzyme:
-    /*const Atom& atom = atoms[ iAtom ];
+void Arena::catalyzeReactionLocally(const int cx, const int cy, const Reaction& r)
+{
+    const int num_vN = 5;
+    const int vNx[ num_vN ] = { 0,  0,  1,  0, -1 }; // CNESW
+    const int vNy[ num_vN ] = { 0, -1,  0,  1,  0 };
+
+    for( int x = cx - reaction_radius; x <= cx + reaction_radius; ++x ) {
+        for( int y = cy - reaction_radius; y <= cy + reaction_radius; ++y ) {
+            if( isOffGrid(x, y) ) continue;
+            const std::vector<size_t>& slotA = grid(x, y);
+            if( slotA.empty() ) continue;
+            for( int iiA = 0; iiA < slotA.size(); ++iiA ) {
+                const size_t iA = slotA[iiA];
+                Atom& a = atoms[ iA ];
+                // check the reaction matches the first reactant
+                if( a.type != r.a_type || a.state != r.a_pre ) continue;
+                for( int dir = 0; dir < num_vN; ++dir ) {
+                    int ox = x + vNx[ dir ];
+                    int oy = y + vNy[ dir ];
+                    if( isOffGrid(ox, oy) ) continue;
+                    const std::vector<size_t>& slotB = grid(ox, oy);
+                    if( slotB.empty() ) continue;
+                    for( int iiB = 0; iiB < slotB.size(); ++iiB ) {
+                        const size_t iB = slotB[iiB];
+                        if( iB == iA ) continue;
+                        Atom& b = atoms[ iB ];
+                        // check the reaction matches the reactants
+                        if( b.type != r.b_type || b.state != r.b_pre ) continue;
+                        const bool bonded = a.hasBondWith( iB );
+                        if( bonded != r.bonded_pre ) continue;
+                        // apply the reaction
+                        std::cout << "Applying " << r.getAsHumanReadableString() << std::endl;
+                        a.state = r.a_post;
+                        b.state = r.b_post;
+                        if( !bonded && r.bonded_post )
+                            makeBond( iA, iB );
+                        else if( bonded && !r.bonded_post )
+                            breakBond( iA, iB );
+                    }
+                }
+            }
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
+
+bool Arena::isEnzyme( const size_t iAtom, Reaction::DigitsType& digits ) {
+    const Atom& atom = atoms[iAtom];
     if( atom.bonds.size() != 1 ) return false;
-    string s;
-    s += atom.type;
-    if( collectEnzymeBits( iAtom, atom.bonds.front(), s ) ) {
-        r = Reaction( s );
+    const size_t digit = atom.type - 'a';
+    if( digit < 0 || digit >= Reaction::base ) return false;
+    digits[0] = digit;
+    if( collectEnzymeBits( iAtom, atom.bonds.front(), digits, 1 ) ) {
         return true;
-    }*/
+    }
     return false;
 }
 
 //----------------------------------------------------------------------------
 
-bool Arena::collectEnzymeBits( size_t iAtom, size_t iNextAtom, string& s ) {
-    // follow this bond, collecting the values in s if still a valid enzyme
-    /*const Atom& next_atom = atoms[ iNextAtom ];
+bool Arena::collectEnzymeBits( size_t iAtom, size_t iNextAtom, Reaction::DigitsType& digits, size_t iDigit ) {
+    // follow this bond, collecting the digits if still a valid enzyme
+    const Atom& next_atom = atoms[ iNextAtom ];
+    const size_t digit = next_atom.type - 'a';
+    if( digit < 0 || digit >= Reaction::base ) return false;
+    digits[iDigit++] = digit;
+    if( iDigit == Reaction::num_digits ) return true;
     if( next_atom.bonds.size() > 2 ) return false;
-    s += next_atom.type;
-    if( !Reaction::validSoFar( s ) )
-        return false;
-    if( Reaction::isValid( s ) )
-        return true;
 
     for( const size_t& iNextNextAtom : next_atom.bonds ) {
         if( iNextNextAtom != iAtom )
-            return collectEnzymeBits( iNextAtom, iNextNextAtom, s );
-    }*/
+            return collectEnzymeBits( iNextAtom, iNextNextAtom, digits, iDigit );
+    }
     return false; // string is too short to interpret as a reaction
 }
 

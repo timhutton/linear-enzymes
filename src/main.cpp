@@ -105,6 +105,8 @@ void seed(Arena& arena)
         // some (random) enzymes and the dna
         size_t max_num_digits = 0;
         std::vector<Reaction::DigitsType> enzymes;
+        const Reaction r( 'c', 0, false, 'b', 0, 2, true, 3 );
+        enzymes.push_back( r.getBases() );
         for(int i = 0; i < 30; i++) {
             const Reaction r( getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
                 getRandIntInclusive(0,1), getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),

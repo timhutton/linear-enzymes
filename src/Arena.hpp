@@ -47,6 +47,7 @@ class Arena {
 
         static constexpr Neighborhood movement_neighborhood = Neighborhood::Moore;
         static constexpr Neighborhood bond_neighborhood = Neighborhood::Moore;
+        static constexpr size_t reaction_radius = 5;
         static constexpr size_t max_slot_capacity = Reaction::num_digits-1; // (don't want enzymes in a single slot)
 
     private:
@@ -56,9 +57,10 @@ class Arena {
         void moveAtomsAlongBonds( int x, int y );
         void moveAtomsOutOfSlot( int x, int y, int tx, int ty );
         void doChemistry();
+        void catalyzeReactionLocally(const int cx, const int cy, const Reaction& r);
         int getRandomMove() const;
-        bool isEnzyme( size_t iAtom, Reaction& r );
-        bool collectEnzymeBits( size_t iAtom, size_t iNextAtom, std::string& s );
+        bool isEnzyme( const size_t iAtom, Reaction::DigitsType& digits );
+        bool collectEnzymeBits( const size_t iAtom, const size_t iNextAtom, Reaction::DigitsType& digits, size_t iDigit );
         size_t getNumExitBonds( int x, int y);
         bool hasBond( int x1, int y1, int x2, int y2 ) const;
 
