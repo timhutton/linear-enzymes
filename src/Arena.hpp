@@ -21,8 +21,8 @@ class Arena {
 
     public:
 
-        static constexpr int X = 70;
-        static constexpr int Y = 70;
+        static constexpr int X = 102;
+        static constexpr int Y = 80;
 
         size_t addAtom( int x, int y, char type, int state );
         bool hasBond( size_t a, size_t b ) const;
@@ -47,7 +47,7 @@ class Arena {
 
         static constexpr Neighborhood movement_neighborhood = Neighborhood::Moore;
         static constexpr Neighborhood bond_neighborhood = Neighborhood::Moore;
-        static constexpr size_t max_slot_capacity = 10;
+        static constexpr size_t max_slot_capacity = Reaction::num_digits-1; // (don't want enzymes in a single slot)
 
     private:
 

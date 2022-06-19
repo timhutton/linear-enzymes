@@ -8,16 +8,11 @@
 
 SDL_Color GetColor(char type)
 {
-    switch(type)
-    {
-        default:
-        case 'e': return {255,0,0}; // red
-        case 'f': return {0,255,0}; // green
-        case 'a': return {220,220,0}; // yellow
-        case 'b': return {128,128,128}; // gray
-        case 'c': return {0,255,255}; // cyan
-        case 'd': return {0,0,255}; // blue
-    }
+    constexpr int N = 15;
+    constexpr SDL_Color colors[N] = {{0,240,246}, {251,64,40}, {1,58,168}, {202,252,63}, {122,42,194},
+                                     {52,107,0}, {255,90,218}, {0,170,141}, {231,0,122}, {209,255,193},
+                                     {166,0,39}, {1,114,182}, {197,100,0}, {187,125,159}, {118,58,87}};
+    return colors[ (type - 'a') % N ];
 }
 
 void Arena_SDL::Draw(SDL_Renderer* renderer,float scale)

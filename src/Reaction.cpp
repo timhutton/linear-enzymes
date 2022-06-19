@@ -3,6 +3,7 @@
 #include "base_conversions.hpp"
 
 // stdlib:
+#include <iostream>
 #include <sstream>
 
 const std::array<int, Reaction::num_entries> Reaction::limits = {
@@ -19,7 +20,6 @@ Reaction::Reaction( char a_type, int a_pre, bool bonded_pre, char b_type, int b_
     , bonded_post( bonded_post )
     , b_post( b_post )
 {
-
 }
 
 Reaction::Reaction( const Reaction::DigitsType& digits ) {

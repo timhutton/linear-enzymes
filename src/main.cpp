@@ -55,59 +55,26 @@ extern "C" void EMSCRIPTEN_KEEPALIVE toggle_start_stop() { is_running = !is_runn
 
 int main()
 {
-    if(0) {
-        // DEBUG:
-        constexpr int N = 3;
-        const int base = 5;
-        const std::array<int, N> limits = { 11, 4, 3 };
-        const std::array<int, N> values = { 0, 0, 2 };
-        std::cout << "Original values (" << values.size() << "):";
-        for(int value : values ) { std::cout << " " << value; }
-        std::cout << std::endl;
-        std::cout << "As base 5: " << MultiBaseToValue<N>(values, limits) << std::endl;
-        const std::vector<int> packed = ConvertFromMultiBase<N>(values, limits, base);
-        std::cout << "Packed values (" << packed.size() << "):";
-        for(int value : packed ) { std::cout << " " << value; }
-        std::cout << std::endl;
-        std::cout << "Packed values as base 5: " << BaseToValue(packed, base) << std::endl;
-        const std::array<int, N> unpacked = ConvertToMultiBase<N>(packed, base, limits);
-        std::cout << "Unpacked values (" << unpacked.size() << "):";
-        for(int value : unpacked ) { std::cout << " " << value; }
-        std::cout << std::endl;
-    }
-
-    if(0) {
-        // DEBUG
-        const Reaction r('d',7,false,'b',0,2,true,8);
-        const Reaction::DigitsType digits = r.getBases();
-        const Reaction r2(digits);
-        std::cout << "Before: " << r.getAsHumanReadableString() << std::endl;
-        std::cout << "Digits (" << digits.size() << "):";
-        for(const int digit : digits) std::cout << " " << digit;
-        std::cout << std::endl;
-        std::cout << "After: " << r2.getAsHumanReadableString() << std::endl;
-    }
+    std::cout << "Initializing..." << std::endl;
 
     context ctx;
 
-    const float scale = 10.0f;
+    const float scale = 8.0f;
     SDL_Init(SDL_INIT_VIDEO);
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_CreateWindowAndRenderer(ctx.arena.X*scale, ctx.arena.Y*scale, 0, &window, &renderer);
+    ctx.renderer = renderer;
+    ctx.iteration = 0;
+    ctx.scale = scale;
 
     try {
-        std::cout << "Initializing..." << std::endl;
         seed(ctx.arena);
     } catch(const std::exception& e) {
         std::cout << "Caught exception in initialization: " << e.what() << std::endl;
     } catch(...) {
         std::cout << "Caught unknown exception in initialization" << std::endl;
     }
-
-    ctx.renderer = renderer;
-    ctx.iteration = 0;
-    ctx.scale = scale;
 
     std::cout << "Running..." << std::endl;
     const int simulate_infinite_loop = 1; // call the function repeatedly
@@ -125,24 +92,40 @@ int main()
 
 void seed(Arena& arena)
 {
+    // checks
+    const size_t expected_num_digits = ConvertFromMultiBase<Reaction::num_entries>( Reaction::limits, Reaction::limits, Reaction::base ).size();
+    if( expected_num_digits != Reaction::num_digits ) {
+        std::cout << "Should Reaction::limits be " << expected_num_digits << "?" << std::endl;
+        throw std::runtime_error("Reaction::limits mismatch");
+    }
+
     // add a cell
     if( 1 ) {
+        std::cout << "Drawing DNA..." << std::endl;
         // some (random) enzymes and the dna
+        size_t max_num_digits = 0;
         std::vector<Reaction::DigitsType> enzymes;
-        for(int i = 0; i < 60; i++) {
-            enzymes.push_back( Reaction( getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
+        for(int i = 0; i < 30; i++) {
+            const Reaction r( getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
                 getRandIntInclusive(0,1), getRandIntInclusive(0,Reaction::num_types-1)+'a', getRandIntInclusive(0,Reaction::num_states-1),
-                getRandIntInclusive(0,Reaction::num_states-1), getRandIntInclusive(0,1), getRandIntInclusive(0,Reaction::num_states-1) ).getBases() );
+                getRandIntInclusive(0,Reaction::num_states-1), getRandIntInclusive(0,1), getRandIntInclusive(0,Reaction::num_states-1) );
+            enzymes.push_back( r.getBases() );
+            const size_t num_digits = ConvertFromMultiBase<Reaction::num_entries>( r.getEntries(), Reaction::limits, Reaction::base ).size();
+            std::cout << r.getAsHumanReadableString() << " ( " << num_digits << " )" << std::endl;
+            if( num_digits > max_num_digits ) {
+                max_num_digits = num_digits;
+            }
         }
+        std::cout << "Max num digits = " << max_num_digits << std::endl;
         std::vector<int> dna;
-        dna.push_back(5); // start marker
+        dna.push_back(Reaction::base); // start marker
         for(const Reaction::DigitsType& enzyme : enzymes) {
             dna.insert(dna.end(), enzyme.begin(), enzyme.end());
-            dna.push_back(5); // separator
+            dna.push_back(Reaction::base+1); // separator
         }
         // draw the dna
         int x = 11;
-        int y = 25;
+        int y = Reaction::num_digits + 10;
         const int dna_min_y = y;
         const int dna_max_y = y + Reaction::num_digits*2;
         int dx = 0;
@@ -179,6 +162,7 @@ void seed(Arena& arena)
         const Atom& dna_end_atom = arena.getAtom(dna_end);
 
         if( 1 ) {
+            std::cout << "Drawing enzymes..." << std::endl;
             // draw the enzymes above and below (so we get half on each side)
             for(int i = 0; i < enzymes.size(); i++ ) {
                 if( i % 2 ) { x = dna_start_atom.x + (i-1)/2; y = dna_min_y - Reaction::num_digits - 1; }
@@ -193,6 +177,7 @@ void seed(Arena& arena)
         }
 
         if( 1 ) {
+            std::cout << "Drawing membrane..." << std::endl;
             // a loop around the enzymes
             const int min_x = dna_start_atom.x - 1;
             const int min_y = dna_start_atom.y - 1 - Reaction::num_digits - 2;
@@ -231,12 +216,13 @@ void seed(Arena& arena)
     }
 
     if( 1 ) {
+        std::cout << "Drawing soup..." << std::endl;
         // add some surrounding atoms
-        for( int i = 0; i < 500; ++i ) {
+        for( int i = 0; i < arena.X * arena.Y / 10; ++i ) {
             int x = rand() % arena.getArenaWidth();
             int y = rand() % arena.getArenaHeight();
             if( !arena.hasAtom( x, y ) )
-                arena.addAtom( x, y, "abcdef"[getRandIntInclusive(0, 5)], 0 );
+                arena.addAtom( x, y, getRandIntInclusive(0,Reaction::num_types-1)+'a', 0 );
         }
     }
 }
